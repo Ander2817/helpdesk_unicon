@@ -1,0 +1,28 @@
+.login-page {
+    background-color: #1a2a4a;
+}
+
+.btn-primary {
+    background-color: #1a2a4a !important;
+    border-color: #E87722 !important;
+}
+
+.btn-primary:hover {
+    background-color: #E87722 !important;
+}
+
+b {
+
+    color: white;
+    font-size: 30px;
+
+
+}
+
+.texto-secundario {
+
+
+    color: darkgray;
+    font-size: 30px;
+
+}
