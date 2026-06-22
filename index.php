@@ -8,7 +8,11 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
     <link rel="stylesheet" href="assets/css/estilos.css">
 </head>
-<body class="login-page" style="min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+<body class="login-page" style="min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative;">
+
+<div class="position-absolute" style="top: 20px; right: 20px; z-index: 1000;">
+    <img src="assets/img/logo_empresa.png" alt="Logo Unicon" class="img-fluid" style="max-height: 60px; width: auto;">
+</div>
 
 <div class="login-box">
     <div class="login-logo">
