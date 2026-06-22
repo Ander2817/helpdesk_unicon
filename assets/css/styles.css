@@ -1,7 +1,24 @@
-.login-page {
-    background-color: #1a2a4a;
+/* === GENERAL === */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
+html, body {
+    height: 100%;
+}
+
+/* === LOGIN PAGE === */
+.login-page {
+    background-color: #1a2a4a;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* === BOTONES === */
 .btn-primary {
     background-color: #1a2a4a !important;
     border-color: #E87722 !important;
@@ -11,80 +28,32 @@
     background-color: #E87722 !important;
 }
 
-b {
-
-    color: white;
-    font-size: 30px;
-
-
-}
-
-.texto-secundario {
-
-
-    color: darkgray;
-    font-size: 30px;
-
-}
-
-html, body {
-    margin: 0;
-    padding: 0;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-}
-
+/* === FOOTER === */
 footer {
     width: 100%;
-    margin-top: auto !important;
-}
-
-footer {
-    padding: 25px 60px 15px 60px !important;
+    margin-top: auto;
+    padding: 20px 60px 12px 60px;
 }
 
 footer h6 {
-    margin-bottom: 10px !important;
+    font-size: 0.8rem;
+    letter-spacing: 3px;
+    margin-bottom: 8px;
 }
 
 footer ul li {
-    line-height: 1.7 !important;
+    font-size: 0.8rem;
+    line-height: 1.5;
 }
 
 footer p {
-    font-size: 0.82rem !important;
-    line-height: 1.6 !important;
+    font-size: 0.8rem;
+    line-height: 1.5;
 }
 
 footer hr {
-    margin: 8px 0 12px 0 !important;
+    margin: 6px 0 8px 0;
 }
-
-footer {
-    padding: 15px 60px 10px 60px !important;
-}
-
-footer h6 {
-    margin-bottom: 8px !important;
-    font-size: 0.8rem !important;
-    letter-spacing: 3px !important;
-}
-
-footer ul li {
-    line-height: 1.5 !important;
-    font-size: 0.8rem !important;
-}
-
-footer p {
-    font-size: 0.8rem !important;
-    line-height: 1.5 !important;
-}
-
-footer hr {
-    margin: 6px 0 8px 0 !important;
-}
-
-footer .copyright {
-    font-size: 0.75rem !important;
+body.login-page {
+    justify-content: space-between !important;
 }
