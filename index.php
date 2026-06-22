@@ -9,11 +9,8 @@
     <link rel="stylesheet" href="assets/css/styles.css">
     
     <style>
-        /* ========================================== */
-        /* NUEVO: Fondo con Gradiente Premium         */
-        /* ========================================== */
+        /* Fondo con Gradiente Premium */
         body.login-page {
-            /* Crea un degradado diagonal que va desde el azul corporativo a un tono más oscuro */
             background: linear-gradient(135deg, #1a365d 0%, #0f172a 100%) !important;
             min-height: 100vh; 
             display: flex; 
@@ -45,7 +42,7 @@
             border-color: #80bdff !important;
         }
 
-        /* Sombra de brillo unificada alrededor de toda la barra */
+        /* Sombra de brillo unificada de Bootstrap */
         .input-group:focus-within {
             box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
             border-radius: 0.375rem;
@@ -64,7 +61,6 @@
 </div>
 
 <div class="login-box">
-    <!-- Hacemos que el texto del título sea blanco para que contraste con el nuevo fondo oscuro -->
     <div class="login-logo text-white">
         <b class="text-white">HelpDesk</b>
         <span class="texto-secundario text-white-50 fw-light">Unicon</span>
@@ -76,15 +72,13 @@
             <div id="mensaje-error" class="alert alert-danger d-none"></div>
 
             <form id="form-login" action="auth/login.php" method="post">
-                <!-- Input de Usuario -->
                 <div class="input-group mb-3">
-                    <input type="text" name="user_login" class="form-control" placeholder="Usuario">
+                    <input type="text" id="username" name="user_login" class="form-control" placeholder="Usuario">
                     <div class="input-group-append">
                         <div class="input-group-text"><i class="fas fa-user"></i></div>
                     </div>
                 </div>
                 
-                <!-- Input de Contraseña con Ojo -->
                 <div class="input-group mb-3">
                     <input type="password" id="password" name="password" class="form-control" placeholder="Contraseña">
                     <div class="input-group-append" onclick="togglePassword()" style="cursor: pointer;">
@@ -100,7 +94,6 @@
     </div>
 </div>
 
-<!-- Hacemos el texto del footer más claro para que se lea perfectamente sobre el fondo azul oscuro -->
 <footer class="text-center mt-4 text-white-50" style="font-size: 0.85rem;">
     <strong>Copyright &copy; 2026 <a href="#" class="text-white text-decoration-none fw-bold">Unicon</a>.</strong>
     <div class="d-inline ms-1">Todos los derechos reservados.</div>
@@ -110,6 +103,15 @@
 <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
 
 <script>
+// 1. Lógica para saltar de Usuario a Contraseña con la tecla Enter
+document.getElementById('username').addEventListener('keydown', function(event) {
+    if (event.key === 'Enter') {
+        event.preventDefault(); // Evita que el formulario intente enviarse antes de tiempo
+        document.getElementById('password').focus(); // Mueve el cursor al campo de contraseña
+    }
+});
+
+// 2. Lógica para alternar la visibilidad de la contraseña (Ojo)
 function togglePassword() {
     const passwordInput = document.getElementById('password');
     const eyeIcon = document.getElementById('eye-icon');
