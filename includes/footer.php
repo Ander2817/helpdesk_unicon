@@ -51,7 +51,7 @@ $anio_actual = date('Y');
     }
 
     .footer-copy {
-        color: rgb(255, 255, 255);
+        color: rgba(255, 255, 255, 0.6);
         font-size: 0.8rem;
     }
 
