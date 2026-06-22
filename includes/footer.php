@@ -1,63 +1,27 @@
 <?php
-// footer.php
-$anio_actual = date('Y');
+// Captura automatizada del año de ejecución
+$marca_tiempo = date('Y');
 ?>
-
-<footer class="footer-helpdesk mt-auto">
-    <div class="container-fluid">
-        <div class="footer-inner d-flex flex-column flex-md-row align-items-center justify-content-between gap-2">
-
-            <div class="footer-brand d-flex align-items-center gap-2">
-                <i class="fas fa-headset footer-icon"></i>
-                <span class="footer-brand-text">Help<span>Desk</span> Unicon</span>
+    <footer class="main-footer bg-white border-top py-3 mt-auto">
+        <div class="container">
+            <div class="d-flex flex-column flex-sm-row align-items-center justify-content-between gap-2">
+                
+                <div class="text-center text-sm-left">
+                    <span class="text-muted small">
+                        &copy; <?= $marca_tiempo ?> <strong>Sistemas Unicon</strong>. Todos los derechos reservados.
+                    </span>
+                </div>
+                
+                <div class="text-center text-sm-right d-none d-sm-block">
+                    <small class="text-secondary font-monospace">Soporte Técnico de Planta — La Victoria</small>
+                </div>
+                
             </div>
-
-
-            <p class="footer-copy mb-0">
-                &copy; <?= $anio_actual ?> Unicon &mdash; Todos los derechos reservados.
-            </p>
-
-            <span class="footer-version">v1.0.0</span>
-
         </div>
-    </div>
-</footer>
+    </footer>
 
-<style>
-    .footer-helpdesk {
-        background-color: #1a2a4a;
-        border-top: 3px solid #E87722;
-        padding: 0.85rem 1.25rem;
-    }
+</div> <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
 
-    .footer-inner {
-        min-height: 42px;
-    }
-
-    .footer-icon {
-        color: #E87722;
-        font-size: 1.1rem;
-    }
-
-    .footer-brand-text {
-        font-size: 1rem;
-        font-weight: 700;
-        color: #ffffff;
-        letter-spacing: 0.5px;
-    }
-
-    .footer-brand-text span {
-        color: #E87722;
-    }
-
-    .footer-copy {
-        color: rgba(255, 255, 255, 0.6);
-        font-size: 0.8rem;
-    }
-
-    .footer-version {
-        color: rgba(255, 255, 255, 0.35);
-        font-size: 0.75rem;
-        font-family: monospace;
-    }
-</style>
+</body>
+</html>
