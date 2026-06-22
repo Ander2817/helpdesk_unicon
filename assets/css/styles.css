@@ -1,59 +1,228 @@
-/* === GENERAL === */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-html, body {
-    height: 100%;
-}
+/* === RESET === */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; font-family: 'Poppins', sans-serif; }
 
 /* === LOGIN PAGE === */
 .login-page {
-    background-color: #1a2a4a;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: space-between;
+    background:
+        radial-gradient(ellipse at 20% 50%, rgba(232, 119, 34, 0.04) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 20%, rgba(255,255,255,0.03) 0%, transparent 50%),
+        linear-gradient(135deg, #1a365d 0%, #0f172a 100%);
+    position: relative;
+    overflow-x: hidden;
 }
 
-/* === BOTONES === */
-.btn-primary {
-    background-color: #1a2a4a !important;
+/* Patrón de puntos tecnológico sutil */
+.login-page::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size: 30px 30px;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* === WRAPPER CENTRAL === */
+.login-wrapper {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 420px;
+    padding: 80px 20px 30px 20px;
+    text-align: center;
+    animation: fadeInUp 0.5s ease both;
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* === TÍTULO === */
+.login-title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    white-space: nowrap;
+    margin-bottom: 28px;
+}
+
+.title-help {
+    background: linear-gradient(90deg, #ffffff 0%, #E87722 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.title-unicon {
+    color: #adb5bd;
+    font-weight: 300;
+    margin-left: 18px;
+    -webkit-text-fill-color: #adb5bd;
+}
+
+/* === TARJETA === */
+.login-card {
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 12px 48px rgba(0,0,0,0.45), 0 2px 8px rgba(0,0,0,0.2);
+    background: #ffffff;
+}
+
+.login-card-accent {
+    height: 4px;
+    background: linear-gradient(90deg, #E87722, #ff9a4d);
+}
+
+.login-card-body {
+    padding: 32px 35px 28px 35px;
+}
+
+.login-subtitle {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 22px;
+}
+
+/* === INPUTS === */
+.input-group .form-control {
+    border-right: none !important;
+    border-color: #dee2e6;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    font-size: 0.9rem;
+}
+
+.input-group .input-group-text {
+    border-left: none !important;
+    background: #fff !important;
+    border-color: #dee2e6;
+    color: #adb5bd;
+    transition: border-color 0.2s;
+}
+
+.input-group:focus-within .form-control,
+.input-group:focus-within .input-group-text {
     border-color: #E87722 !important;
 }
 
-.btn-primary:hover {
-    background-color: #E87722 !important;
+.input-group:focus-within {
+    box-shadow: 0 0 0 0.2rem rgba(232, 119, 34, 0.15);
+    border-radius: 6px;
+}
+
+.form-control:focus { box-shadow: none !important; outline: none; }
+
+.toggle-password { cursor: pointer; }
+.toggle-password:hover { color: #E87722; }
+
+/* === CHECKBOX Y LINKS === */
+.form-check-input:checked {
+    background-color: #E87722;
+    border-color: #E87722;
+}
+
+.link-naranja {
+    color: #E87722;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s, text-decoration 0.2s;
+}
+
+.link-naranja:hover {
+    color: #c9610f;
+    text-decoration: underline;
+}
+
+/* === BOTÓN === */
+.btn-ingresar {
+    background-color: #1a2a4a;
+    color: #ffffff;
+    border: 2px solid #E87722;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    transition: background-color 0.25s, transform 0.15s;
+    cursor: pointer;
+}
+
+.btn-ingresar:hover {
+    background-color: #E87722;
+    transform: translateY(-1px);
+}
+
+.btn-ingresar:active {
+    transform: translateY(0);
 }
 
 /* === FOOTER === */
 footer {
+    position: relative;
+    z-index: 1;
     width: 100%;
-    margin-top: auto;
+    background-color: #0d1b2e;
+    border-top: 3px solid #E87722;
     padding: 20px 60px 12px 60px;
 }
 
-footer h6 {
-    font-size: 0.8rem;
+.footer-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    color: #adb5bd;
+}
+
+.footer-titulo {
+    color: #E87722;
+    font-weight: 700;
+    font-size: 0.75rem;
     letter-spacing: 3px;
     margin-bottom: 8px;
+    text-transform: uppercase;
 }
 
-footer ul li {
-    font-size: 0.8rem;
-    line-height: 1.5;
+.footer-lista {
+    list-style: none;
+    padding: 0;
+    font-size: 0.78rem;
+    line-height: 1.8;
 }
 
-footer p {
-    font-size: 0.8rem;
-    line-height: 1.5;
+.footer-desc {
+    font-size: 0.78rem;
+    line-height: 1.6;
 }
 
-footer hr {
-    margin: 6px 0 8px 0;
+.footer-hr {
+    border-color: #E87722;
+    opacity: 0.3;
+    margin: 10px 0 8px 0;
 }
-body.login-page {
-    justify-content: space-between !important;
+
+.footer-copy {
+    text-align: center;
+    font-size: 0.72rem;
+    color: #6c757d;
+    margin: 0;
+    padding-bottom: 4px;
+}
+
+.naranja { color: #E87722; font-weight: 700; }
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+    .footer-grid { grid-template-columns: repeat(2, 1fr); }
+    footer { padding: 20px 25px 12px 25px; }
+}
+
+@media (max-width: 480px) {
+    .footer-grid { grid-template-columns: 1fr; }
+    .login-title { font-size: 1.7rem; }
 }

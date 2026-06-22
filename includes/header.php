@@ -1,23 +1,18 @@
 <?php
-// 1. Asegurar el estado de la sesión antes de operar
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// 2. Control de Acceso: Si no existe tu variable 'usser', expulsar de inmediato
-if (!isset($_SESSION['usser'])) {
+// Verificar sesión y rol
+if (!isset($_SESSION['usser']) || !isset($_SESSION['id_rol'])) {
     header("Location: ../index.php");
     exit();
 }
 
-// 3. Importación dinámica de la conexión de la BD subiendo un nivel hacia config/
-if (!isset($conexion)) {
-    require_once '../config/conexion.php';
-}
+require_once '../config/conexion.php';
 
-// 4. Mapeo local de tus variables de sesión para usarlas en las vistas de HTML
 $usuario_activo = $_SESSION['usser'];
-$rol_id         = $_SESSION['id_rol']; 
+$rol_id         = $_SESSION['id_rol'];
 ?>
 <!DOCTYPE html>
 <html lang="es">
