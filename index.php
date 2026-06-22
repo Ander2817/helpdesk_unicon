@@ -24,7 +24,7 @@
 
             <div id="mensaje-error" class="alert alert-danger d-none"></div>
 
-            <form id="form-login" action="validar.php" method="post">
+            <form id="form-login" action="auth/login.php" method="post">
                 <div class="input-group mb-3">
                     <input type="text" name="user_login" class="form-control" placeholder="Usuario">
                     <div class="input-group-append">
