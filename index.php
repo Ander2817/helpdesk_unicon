@@ -8,44 +8,66 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
     <link rel="stylesheet" href="assets/css/styles.css">
     
-    <!-- NUEVO: Estilos para la micro-interacción (Efecto Focus) -->
     <style>
-        /* Estilizamos el contenedor del input para que la transición sea suave */
-        .input-group {
-            border-radius: 0.375rem;
-            transition: all 0.3s ease;
-            border: 1px solid transparent;
+        /* ========================================== */
+        /* NUEVO: Fondo con Gradiente Premium         */
+        /* ========================================== */
+        body.login-page {
+            /* Crea un degradado diagonal que va desde el azul corporativo a un tono más oscuro */
+            background: linear-gradient(135deg, #1a365d 0%, #0f172a 100%) !important;
+            min-height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+            position: relative;
         }
 
-        /* Cuando el input de adentro esté activo (:focus-within), iluminamos todo el grupo */
+        /* Estructura base para el grupo de inputs */
+        .input-group .form-control,
+        .input-group .input-group-text {
+            border: 1px solid #ced4da;
+            transition: all 0.2s ease-in-out;
+        }
+
+        /* Quitamos el borde derecho del campo de texto y el izquierdo del icono */
+        .input-group .form-control {
+            border-right: none !important;
+        }
+        .input-group .input-group-text {
+            border-left: none !important;
+            background-color: #fff !important;
+        }
+
+        /* EFECTO FOCUS: Sincronización perfecta */
+        .input-group:focus-within .form-control,
+        .input-group:focus-within .input-group-text {
+            border-color: #80bdff !important;
+        }
+
+        /* Sombra de brillo unificada alrededor de toda la barra */
         .input-group:focus-within {
             box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
-            border-color: #80bdff;
             border-radius: 0.375rem;
         }
 
-        /* Quitamos el borde azul por defecto de Bootstrap en el input individual para que no se duplique */
-        .input-group .form-control:focus {
-            box-shadow: none;
-            border-color: #ced4da;
-        }
-        
-        /* Mantenemos el borde limpio en el icono cuando hay focus */
-        .input-group:focus-within .input-group-text {
-            border-color: #80bdff;
+        /* Desactivamos el focus independiente de Bootstrap */
+        .form-control:focus {
+            box-shadow: none !important;
         }
     </style>
 </head>
-<body class="login-page" style="min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative;">
+<body class="login-page">
 
 <div class="position-absolute" style="top: 20px; right: 20px; z-index: 1000;">
     <img src="assets/img/logo_empresa.png" alt="Logo Unicon" class="img-fluid" style="max-height: 60px; width: auto;">
 </div>
 
 <div class="login-box">
-    <div class="login-logo">
-        <b>HelpDesk</b>
-        <span class="texto-secundario">Unicon</span>
+    <!-- Hacemos que el texto del título sea blanco para que contraste con el nuevo fondo oscuro -->
+    <div class="login-logo text-white">
+        <b class="text-white">HelpDesk</b>
+        <span class="texto-secundario text-white-50 fw-light">Unicon</span>
     </div>
     <div class="card">
         <div class="card-body login-card-body">
@@ -54,6 +76,7 @@
             <div id="mensaje-error" class="alert alert-danger d-none"></div>
 
             <form id="form-login" action="auth/login.php" method="post">
+                <!-- Input de Usuario -->
                 <div class="input-group mb-3">
                     <input type="text" name="user_login" class="form-control" placeholder="Usuario">
                     <div class="input-group-append">
@@ -61,6 +84,7 @@
                     </div>
                 </div>
                 
+                <!-- Input de Contraseña con Ojo -->
                 <div class="input-group mb-3">
                     <input type="password" id="password" name="password" class="form-control" placeholder="Contraseña">
                     <div class="input-group-append" onclick="togglePassword()" style="cursor: pointer;">
@@ -76,8 +100,9 @@
     </div>
 </div>
 
-<footer class="text-center mt-4 text-secondary" style="font-size: 0.85rem;">
-    <strong>Copyright &copy; 2026 <a href="#" class="text-decoration-none">Unicon</a>.</strong>
+<!-- Hacemos el texto del footer más claro para que se lea perfectamente sobre el fondo azul oscuro -->
+<footer class="text-center mt-4 text-white-50" style="font-size: 0.85rem;">
+    <strong>Copyright &copy; 2026 <a href="#" class="text-white text-decoration-none fw-bold">Unicon</a>.</strong>
     <div class="d-inline ms-1">Todos los derechos reservados.</div>
 </footer>
 
