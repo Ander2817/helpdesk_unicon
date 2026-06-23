@@ -16,7 +16,7 @@ function limpiar_inputs(string $dato): string {
     $dato = trim($dato);
     $dato = stripslashes($dato);
     return htmlspecialchars($dato, ENT_QUOTES, 'UTF-8');
-} // <-- ¡AQUÍ FALTABA ESTA LLAVE DE CIERRE!
+} 
 
 function procesar_opcional(?string $dato): ?string { // para nulls como telefono
     if ($dato === null || empty(trim($dato))) {
@@ -68,7 +68,7 @@ function mostrar_alerta_sistema(): string {
     // Borramos la alerta para que no vuelva a aparecer al recargar
     unset($_SESSION['alerta_flash']);
 
-    // Retorna el bloque HTML listo con clases de Bootstrap
+    // Retorna el bloque HTML listo con  Bootstrap god
     return "<div class='alert alert-{$tipo} alert-dismissible fade show' role='alert'>
                 {$msj}
                 <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>

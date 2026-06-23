@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 22-06-2026 a las 04:14:56
+-- Tiempo de generación: 23-06-2026 a las 05:03:26
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -161,7 +161,7 @@ CREATE TABLE `prioridades` (
   `id_prioridad` int(11) NOT NULL,
   `nombre` varchar(50) NOT NULL,
   `nivel` int(11) NOT NULL DEFAULT 2,
-  `tiempo_respuesta_objetivo` int(11) NOT NULL DEFAULT 2080 COMMENT 'Guardar minutos'
+  `tiempo_respuesta_objetivo` int(11) NOT NULL DEFAULT 2880 COMMENT 'Guardar minutos'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -225,7 +225,7 @@ CREATE TABLE `usuarios` (
   `contraseña` varchar(255) NOT NULL,
   `telefono` varchar(20) DEFAULT NULL,
   `id_departamento` int(11) NOT NULL,
-  `id_rol` int(11) NOT NULL,
+  `id_rol` int(11) NOT NULL DEFAULT 1,
   `estado` enum('activo','inactivo','reposo','pasante','vacaciones','suspendido') NOT NULL DEFAULT 'activo'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
