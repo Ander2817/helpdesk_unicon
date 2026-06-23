@@ -32,15 +32,15 @@
                 <p class="login-subtitle">Inicia sesión en tu cuenta</p>
 
                 <?php if (isset($_GET['error'])): ?>
-                    <div class="alert alert-danger">
+                    <div id="php-alert" class="alert alert-danger">
                         <?php
                             if ($_GET['error'] === 'clave')   echo '⚠️ Contraseña incorrecta.';
                             if ($_GET['error'] === 'usuario') echo '⚠️ Usuario no encontrado.';
                         ?>
                     </div>
-                <?php else: ?>
-                    <div id="mensaje-error" class="alert alert-danger d-none"></div>
                 <?php endif; ?>
+
+                <div id="mensaje-error" class="alert alert-danger d-none"></div>
 
                 <form id="form-login" action="auth/login.php" method="post">
 
@@ -89,48 +89,112 @@
 
     <!-- Footer -->
     <footer>
-        <div class="footer-grid">
-            <div>
-                <h6 class="footer-titulo">SISTEMA</h6>
-                <ul class="footer-lista">
-                    <li>Inicio</li>
-                    <li>Mis Tickets</li>
-                    <li>Soporte</li>
-                </ul>
-            </div>
-            <div>
-                <h6 class="footer-titulo">EMPRESA</h6>
-                <ul class="footer-lista">
-                    <li>Industrias Unicon C.A.</li>
-                    <li>ArcelorMittal</li>
-                    <li>Zona Industrial La Chapa</li>
-                    <li>La Victoria, Aragua</li>
-                </ul>
-            </div>
-            <div>
-                <h6 class="footer-titulo">CONTACTO</h6>
-                <ul class="footer-lista">
-                    <li>📧 soporte@unicon.com</li>
-                    <li>📞 +58 (0243) 000-0000</li>
-                    <li>🕐 Lun - Vie: 8:00am - 5:00pm</li>
-                </ul>
-            </div>
-            <div>
-                <h6 class="footer-titulo">HELPDESK UNICON</h6>
-                <p class="footer-desc">
-                    Plataforma de gestión de incidencias desarrollada
-                    para el Departamento de Tecnología de la Información.
-                </p>
-            </div>
+    <div class="footer-grid" style="font-size: 1.05rem;">
+        
+        <!-- Columna 1: Enlaces de Acceso Público  -->
+        <div>
+            <h6 class="footer-titulo mb-4">ACCESO</h6>
+            <ul class="footer-lista list-unstyled p-0 m-0">
+                <li class="mb-3">
+                    <i class="fas fa-right-to-bracket me-2 naranja fs-5"></i>
+                    <a href="../index.php" class="text-decoration-none text-white">Iniciar Sesión</a>
+                </li>
+                <li class="mb-3">
+                    <i class="fas fa-user-plus me-2 naranja fs-5"></i>
+                    <a href="registro.php" class="text-decoration-none text-white">Crear Cuenta</a>
+                </li>
+                <li class="mb-3">
+                    <i class="fas fa-key me-2 naranja fs-5"></i>
+                    <a href="mailto:SoporteTecnicoSistemas@unicon.com.ve?subject=HelpDesk%20Unicon%20-%20Problemas%20para%20ingresar" class="text-decoration-none text-white">¿Problemas para ingresar?</a>
+                </li>
+            </ul>
         </div>
-        <hr class="footer-hr">
-        <p class="footer-copy">
-            Copyright © 2026 <span class="naranja">Unicon.</span> Todos los derechos reservados.
-        </p>
-    </footer>
+
+        <!-- Columna 2: Empresa -->
+        <div>
+            <h6 class="footer-titulo mb-4">EMPRESA</h6>
+            <ul class="footer-lista text-white list-unstyled p-0 m-0">
+                <li class="mb-1"><strong>Industrias Unicon C.A.</strong></li>
+                <li class="mb-1 text-white">Filial de ArcelorMittal (Desde 2008)</li>
+                <li class="mb-4 text-white">Fundada en 1959</li>
+                
+                <li class="mt-4 mb-1"><i class="fas fa-city me-2 naranja fs-5"></i><strong>Sede Principal:</strong></li>
+                <li class="mb-1 text-white">Colinas de Bello Monte, Caracas</li>
+                <li class="mb-4">
+                    <a href="https://www.bing.com/maps/search?trk=org-locations_url&q=Av.+Beethoven%2C+Torre+Financiera.+Piso+9.++Colinas+de+Bello+Monte.+Caracas+1050+D.F.+VE&cp=10.485090%7E-66.876213&lvl=21&style=r" target="_blank" class="text-decoration-none naranja fw-bold">
+                        <i class="fas fa-location-dot me-1"></i> Cómo llegar
+                    </a>
+                </li>
+                
+                <li class="mt-4 mb-1"><i class="fas fa-warehouse me-2 naranja fs-5"></i><strong>Planta # 02:</strong></li>
+                <li class="mb-1 text-white">Zona Industrial La Chapa, La Victoria</li>
+                <li class="mb-1">
+                    <a href="https://www.bing.com/maps/search?trk=org-locations_url&q=2121+Planta+%23+02+La+Victoria+2121+Aragua+VE&cp=10.232945%7E-67.319962&lvl=16&style=r" target="_blank" class="text-decoration-none naranja fw-bold">
+                        <i class="fas fa-location-dot me-1"></i> Cómo llegar
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Columna 3: Contacto -->
+        <div>
+            <h6 class="footer-titulo mb-4">CONTACTO</h6>
+            <ul class="footer-lista text-white list-unstyled p-0 m-0">
+                <li class="mb-4">
+                    <i class="fas fa-paper-plane me-2 naranja fs-5"></i>
+                    <a href="mailto:SoporteTecnicoSistemas@unicon.com.ve" class="text-decoration-none text-white">SoporteTecnicoSistemas@unicon.com.ve</a>
+                </li>
+                <li class="mb-4">
+                    <i class="fas fa-headset me-2 naranja fs-5"></i>
+                    +58 (244) 400.4800 &nbsp;Ext 2386
+                </li>
+                <li class="mb-4">
+                    <i class="fas fa-earth-americas me-2 naranja fs-5"></i>
+                    <a href="http://www.unicon.com.ve" target="_blank" class="text-decoration-none naranja fw-bold">www.unicon.com.ve</a>
+                </li>
+                <li class="mt-4 text-white">
+                    <i class="fas fa-business-time me-2 naranja fs-5"></i>
+                    Lun - Vie: 8:00am - 4:30pm
+                </li>
+            </ul>
+        </div>
+
+        <!-- Columna 4: Descripción del HelpDesk -->
+        <div>
+            <h6 class="footer-titulo mb-4">HELPDESK UNICON</h6>
+            <p class="footer-desc text-white m-0" style="text-align: justify; text-justify: inter-word; line-height: 1.8;">
+                Plataforma interna de gestión de incidencias e inventario, desarrollada exclusivamente para el Departamento de Tecnología de la Información.
+            </p>
+        </div>
+    </div>
+    
+    <hr class="footer-hr my-4">
+    <p class="footer-copy text-white text-center" style="font-size: 0.95rem;">
+        Copyright © 2026 <span class="naranja fw-bold">Industrias Unicon C.A.</span> Todos los derechos reservados.
+    </p>
+</footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+    // === AGREGA ESTO DESDE AQUÍ ===
+    document.getElementById('form-login').addEventListener('submit', function(e) {
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value.trim();
+        const mensajeError = document.getElementById('mensaje-error');
+        const phpAlert = document.getElementById('php-alert');
+
+    // Si alguno está vacío, frena el envío y muestra la alerta en caliente
+        if (username === '' || password === '') {
+            e.preventDefault(); 
+
+        if (phpAlert) {
+            phpAlert.classList.add('d-none'); // Oculta el error viejo de la Base de Datos
+        }
+
+        mensajeError.innerHTML = '⚠️ Introduzca sus datos.';
+        mensajeError.classList.remove('d-none'); // Muestra el nuevo error
+        }
+    });
     document.getElementById('username').addEventListener('keydown', function(e) {
         if (e.key === 'Enter') {
             e.preventDefault();

@@ -1,106 +1,209 @@
-<?php
-// 1. IMPORTANTE: Salimos de la carpeta admin/ para jalar el validador de sesión y tus variables
-include_once '../includes/header.php';
-?>
+<?php include_once '../includes/header.php'; ?>
 
-<div class="content-wrapper py-4" style="background-color: #f8f9fa;">
-    <div class="content">
-        <div class="container">
-            
-            <div class="row mb-4">
-                <div class="col-12">
-                    <div class="card card-outline shadow-sm border-0" style="border-top: 3px solid var(--azul-unicon);">
-                        <div class="card-body p-4 d-flex align-items-center justify-content-between flex-wrap gap-3">
-                            <div>
-                                <h3 class="font-weight-bold text-dark mb-1">Panel Operativo TI</h3>
-                                <p class="text-muted mb-0 small">Conectado como: <strong><?php echo htmlspecialchars($usuario_activo); ?></strong> &mdash; Sede Administrativa e Industrial</p>
-                            </div>
-                            <div>
-                                <span class="badge px-3 py-2 text-uppercase font-monospace text-white" style="background-color: var(--azul-unicon); font-size: 0.75rem;">
-                                    ID Rol Activo: <?php echo htmlspecialchars($rol_id); ?>
-                                </span>
-                            </div>
-                        </div>
+<main class="hd-main">
+
+    <!-- ENCABEZADO DE PÁGINA -->
+    <div class="hd-page-header">
+        <div>
+            <h2><i class="fas fa-chart-line" style="color:var(--naranja);margin-right:8px;"></i>Panel Administrativo</h2>
+            <p>Bienvenido, <strong><?= htmlspecialchars($usuario_activo) ?></strong> — Vista general del sistema HelpDesk</p>
+        </div>
+        <span class="hd-rol-badge"><i class="fas fa-shield-alt"></i> Administrador</span>
+    </div>
+
+    <!-- ESTADÍSTICAS PRINCIPALES -->
+    <div class="hd-stats hd-stats-4">
+        <div class="hd-stat">
+            <div class="hd-stat-icon rojo"><i class="fas fa-exclamation-triangle"></i></div>
+            <div>
+                <div class="hd-stat-num">04</div>
+                <div class="hd-stat-label">Tickets Críticos</div>
+            </div>
+        </div>
+        <div class="hd-stat">
+            <div class="hd-stat-icon naranja"><i class="fas fa-spinner"></i></div>
+            <div>
+                <div class="hd-stat-num">12</div>
+                <div class="hd-stat-label">En Proceso</div>
+            </div>
+        </div>
+        <div class="hd-stat">
+            <div class="hd-stat-icon verde"><i class="fas fa-check-circle"></i></div>
+            <div>
+                <div class="hd-stat-num">38</div>
+                <div class="hd-stat-label">Resueltos este mes</div>
+            </div>
+        </div>
+        <div class="hd-stat">
+            <div class="hd-stat-icon azul"><i class="fas fa-users"></i></div>
+            <div>
+                <div class="hd-stat-num">16</div>
+                <div class="hd-stat-label">Usuarios Activos</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SEGUNDA FILA DE STATS -->
+    <div class="hd-stats hd-stats-4" style="margin-top:-8px;">
+        <div class="hd-stat">
+            <div class="hd-stat-icon celeste"><i class="fas fa-ticket-alt"></i></div>
+            <div>
+                <div class="hd-stat-num">54</div>
+                <div class="hd-stat-label">Total Tickets</div>
+            </div>
+        </div>
+        <div class="hd-stat">
+            <div class="hd-stat-icon amarillo"><i class="fas fa-clock"></i></div>
+            <div>
+                <div class="hd-stat-num">2.4h</div>
+                <div class="hd-stat-label">Tiempo Prom. Respuesta</div>
+            </div>
+        </div>
+        <div class="hd-stat">
+            <div class="hd-stat-icon verde"><i class="fas fa-server"></i></div>
+            <div>
+                <div class="hd-stat-num">47</div>
+                <div class="hd-stat-label">Equipos en Inventario</div>
+            </div>
+        </div>
+        <div class="hd-stat">
+            <div class="hd-stat-icon naranja"><i class="fas fa-user-cog"></i></div>
+            <div>
+                <div class="hd-stat-num">03</div>
+                <div class="hd-stat-label">Técnicos Activos</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FILA PRINCIPAL: Tabla + Accesos -->
+    <div class="hd-grid-8-4" style="margin-bottom:20px;">
+
+        <!-- TABLA DE TICKETS RECIENTES -->
+        <div class="hd-card">
+            <div class="hd-card-header">
+                <h5 class="hd-card-title"><i class="fas fa-list-ul"></i> Tickets Recientes</h5>
+                <a href="tickets.php" class="hd-btn hd-btn-outline hd-btn-sm">Ver todos</a>
+            </div>
+            <div style="overflow-x:auto;">
+                <table class="hd-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Asunto</th>
+                            <th>Categoría</th>
+                            <th>Departamento</th>
+                            <th>Prioridad</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span style="font-family:monospace;font-size:0.78rem;color:var(--muted);">#TK-0001</span></td>
+                            <td>
+                                <div style="font-weight:500;">Falla de Red LAN</div>
+                                <div style="font-size:0.72rem;color:var(--muted);">Báscula de Pesaje — Planta</div>
+                            </td>
+                            <td>Red e Internet</td>
+                            <td>Manufactura</td>
+                            <td><span class="hd-tag hd-tag-rojo"><i class="fas fa-circle" style="font-size:0.5rem;"></i> Crítica</span></td>
+                            <td><span class="hd-tag hd-tag-naranja">En Proceso</span></td>
+                            <td>
+                                <a href="ticket_ver.php?id=1" class="hd-btn hd-btn-outline hd-btn-sm"><i class="fas fa-eye"></i></a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><span style="font-family:monospace;font-size:0.78rem;color:var(--muted);">#TK-0002</span></td>
+                            <td>
+                                <div style="font-weight:500;">PC no enciende</div>
+                                <div style="font-size:0.72rem;color:var(--muted);">Área de Contabilidad</div>
+                            </td>
+                            <td>Hardware</td>
+                            <td>Contabilidad</td>
+                            <td><span class="hd-tag hd-tag-naranja"><i class="fas fa-circle" style="font-size:0.5rem;"></i> Alta</span></td>
+                            <td><span class="hd-tag hd-tag-azul">Abierto</span></td>
+                            <td>
+                                <a href="ticket_ver.php?id=2" class="hd-btn hd-btn-outline hd-btn-sm"><i class="fas fa-eye"></i></a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><span style="font-family:monospace;font-size:0.78rem;color:var(--muted);">#TK-0003</span></td>
+                            <td>
+                                <div style="font-weight:500;">Impresora sin papel</div>
+                                <div style="font-size:0.72rem;color:var(--muted);">Recursos Humanos</div>
+                            </td>
+                            <td>Impresoras</td>
+                            <td>RRHH</td>
+                            <td><span class="hd-tag hd-tag-gris">Baja</span></td>
+                            <td><span class="hd-tag hd-tag-verde">Resuelto</span></td>
+                            <td>
+                                <a href="ticket_ver.php?id=3" class="hd-btn hd-btn-outline hd-btn-sm"><i class="fas fa-eye"></i></a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><span style="font-family:monospace;font-size:0.78rem;color:var(--muted);">#TK-0004</span></td>
+                            <td>
+                                <div style="font-weight:500;">Acceso a sistema SAP</div>
+                                <div style="font-size:0.72rem;color:var(--muted);">Abastecimiento</div>
+                            </td>
+                            <td>Accesos y Permisos</td>
+                            <td>Abastecimiento</td>
+                            <td><span class="hd-tag hd-tag-amarillo">Media</span></td>
+                            <td><span class="hd-tag hd-tag-gris">Pendiente</span></td>
+                            <td>
+                                <a href="ticket_ver.php?id=4" class="hd-btn hd-btn-outline hd-btn-sm"><i class="fas fa-eye"></i></a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- COLUMNA DERECHA -->
+        <div style="display:flex;flex-direction:column;gap:16px;">
+
+            <!-- Accesos directos -->
+            <div class="hd-card">
+                <div class="hd-card-header">
+                    <h5 class="hd-card-title"><i class="fas fa-bolt"></i> Accesos Directos</h5>
+                </div>
+                <div class="hd-card-body">
+                    <div class="hd-quick-grid">
+                        <a href="tickets_crear.php" class="hd-quick-btn"><i class="fas fa-plus-circle"></i> Crear Ticket</a>
+                        <a href="usuarios.php" class="hd-quick-btn"><i class="fas fa-users"></i> Usuarios</a>
+                        <a href="inventario.php" class="hd-quick-btn"><i class="fas fa-server"></i> Inventario</a>
+                        <a href="reportes.php" class="hd-quick-btn"><i class="fas fa-chart-bar"></i> Reportes</a>
+                        <a href="departamentos.php" class="hd-quick-btn"><i class="fas fa-building"></i> Deptos.</a>
+                        <a href="categorias.php" class="hd-quick-btn"><i class="fas fa-tags"></i> Categorías</a>
                     </div>
                 </div>
             </div>
 
-            <div class="row g-3 mb-4">
-                <div class="col-12 col-sm-6 col-md-4">
-                    <div class="info-box bg-white shadow-sm border-0" style="border-radius: 6px;">
-                        <span class="info-box-icon bg-danger elevation-1" style="border-radius: 6px;"><i class="fas fa-exclamation-triangle"></i></span>
-                        <div class="info-box-content">
-                            <span class="info-box-text text-muted text-uppercase small font-weight-bold">Críticos / Abiertos</span>
-                            <span class="info-box-number h4 font-weight-bold text-dark mb-0">04</span>
+            <!-- Actividad reciente -->
+            <div class="hd-card">
+                <div class="hd-card-header">
+                    <h5 class="hd-card-title"><i class="fas fa-history"></i> Actividad Reciente</h5>
+                </div>
+                <div class="hd-card-body">
+                    <div class="hd-activity-item">
+                        <div class="hd-activity-dot" style="background:#fef2f2;color:var(--danger);"><i class="fas fa-exclamation"></i></div>
+                        <div>
+                            <div class="hd-activity-text">Ticket <strong>#TK-0001</strong> marcado como crítico</div>
+                            <div class="hd-activity-time">hace 15 min</div>
                         </div>
                     </div>
-                </div>
-                <div class="col-12 col-sm-6 col-md-4">
-                    <div class="info-box bg-white shadow-sm border-0" style="border-radius: 6px;">
-                        <span class="info-box-icon bg-warning elevation-1 text-white" style="border-radius: 6px;"><i class="fas fa-wrench"></i></span>
-                        <div class="info-box-content">
-                            <span class="info-box-text text-muted text-uppercase small font-weight-bold">En Reparación</span>
-                            <span class="info-box-number h4 font-weight-bold text-dark mb-0">02</span>
+                    <div class="hd-activity-item">
+                        <div class="hd-activity-dot" style="background:#f0fdf4;color:var(--success);"><i class="fas fa-user-plus"></i></div>
+                        <div>
+                            <div class="hd-activity-text">Nuevo usuario <strong>jperez</strong> registrado</div>
+                            <div class="hd-activity-time">hace 1 hora</div>
                         </div>
                     </div>
-                </div>
-                <div class="col-12 col-sm-6 col-md-4">
-                    <div class="info-box bg-white shadow-sm border-0" style="border-radius: 8px;">
-                        <span class="info-box-icon bg-success elevation-1" style="border-radius: 6px;"><i class="fas fa-check-double"></i></span>
-                        <div class="info-box-content">
-                            <span class="info-box-text text-muted text-uppercase small font-weight-bold">Cerrados Planta</span>
-                            <span class="info-box-number h4 font-weight-bold text-dark mb-0">18</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row g-4">
-                <div class="col-12 col-lg-8">
-                    <div class="card shadow-sm border-0" style="border-radius: 6px;">
-                        <div class="card-header bg-white border-bottom-0 pt-4 px-4">
-                            <h5 class="card-title font-weight-bold text-dark mb-0"><i class="fas fa-list-ul me-2 text-secondary"></i>Monitoreo de Faltas Recientes</h5>
-                        </div>
-                        <div class="card-body p-0">
-                            <div class="table-responsive">
-                                <table class="table table-hover table-valign-middle mb-0" style="font-size: 0.9rem;">
-                                    <thead class="table-light text-secondary">
-                                        <tr>
-                                            <th class="py-3 ps-4">Incidencia</th>
-                                            <th class="py-3">Área de Origen</th>
-                                            <th class="py-3">Estatus</th>
-                                            <th class="py-3 pe-4 text-end">Gestión</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td class="ps-4 py-3">
-                                                <span class="d-block font-weight-bold text-dark">Falla de Red LAN</span>
-                                                <small class="text-muted">ID Caso: #4052</small>
-                                            </td>
-                                            <td class="py-3">Planta — Báscula de Pesaje</td>
-                                            <td class="py-3"><span class="badge bg-danger p-2">Alta Prioridad</span></td>
-                                            <td class="pe-4 py-3 text-end">
-                                                <button class="btn btn-sm btn-outline-secondary"><i class="fas fa-eye"></i></button>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-12 col-lg-4">
-                    <div class="card shadow-sm border-0" style="border-radius: 6px;">
-                        <div class="card-header bg-white border-bottom-0 pt-4 px-4">
-                            <h5 class="card-title font-weight-bold text-dark mb-0">Accesos Directos</h5>
-                        </div>
-                        <div class="card-body px-4 pb-4 pt-2 d-flex flex-column gap-2">
-                            <a href="#" class="btn text-white text-left p-3 d-flex align-items-center justify-content-between" style="background-color: var(--azul-unicon); border-radius: 6px;">
-                                <span><i class="fas fa-plus-circle me-2"></i> Crear Nuevo Reporte</span>
-                                <i class="fas fa-arrow-right small opacity-50"></i>
-                            </a>
+                    <div class="hd-activity-item">
+                        <div class="hd-activity-dot" style="background:#eff6ff;color:var(--info);"><i class="fas fa-check"></i></div>
+                        <div>
+                            <div class="hd-activity-text">Ticket <strong>#TK-0003</strong> resuelto por cmendez</div>
+                            <div class="hd-activity-time">hace 3 horas</div>
                         </div>
                     </div>
                 </div>
@@ -108,9 +211,84 @@ include_once '../includes/header.php';
 
         </div>
     </div>
-</div>
 
-<?php
-// Salimos de admin/ para cerrar la estructura HTML con el footer
-include_once '../includes/footer.php';
-?>
+    <!-- FILA INFERIOR -->
+    <div class="hd-grid-3">
+        <!-- Por categoría -->
+        <div class="hd-card">
+            <div class="hd-card-header">
+                <h5 class="hd-card-title"><i class="fas fa-tags"></i> Por Categoría</h5>
+            </div>
+            <div class="hd-card-body">
+                <?php
+                $categorias = [
+                    ['Hardware', 18, 'naranja'],
+                    ['Software', 14, 'azul'],
+                    ['Red e Internet', 10, 'rojo'],
+                    ['Impresoras', 7, 'amarillo'],
+                    ['Accesos', 5, 'verde'],
+                ];
+                foreach($categorias as $c): ?>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f1f5f9;">
+                    <span style="font-size:0.83rem;"><?= $c[0] ?></span>
+                    <span class="hd-tag hd-tag-<?= $c[2] ?>"><?= $c[1] ?></span>
+                </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+
+        <!-- Por departamento -->
+        <div class="hd-card">
+            <div class="hd-card-header">
+                <h5 class="hd-card-title"><i class="fas fa-building"></i> Por Departamento</h5>
+            </div>
+            <div class="hd-card-body">
+                <?php
+                $deptos = [
+                    ['Manufactura', 16],
+                    ['Contabilidad', 12],
+                    ['RRHH', 9],
+                    ['Abastecimiento', 8],
+                    ['Logística', 5],
+                ];
+                foreach($deptos as $d): ?>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f1f5f9;">
+                    <span style="font-size:0.83rem;"><?= $d[0] ?></span>
+                    <div style="background:#e2e8f0;border-radius:4px;height:6px;width:100px;margin:0 10px;flex:1;">
+                        <div style="background:var(--naranja);height:100%;border-radius:4px;width:<?= ($d[1]/16)*100 ?>%;"></div>
+                    </div>
+                    <span style="font-size:0.78rem;color:var(--muted);min-width:20px;text-align:right;"><?= $d[1] ?></span>
+                </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+
+        <!-- Técnicos -->
+        <div class="hd-card">
+            <div class="hd-card-header">
+                <h5 class="hd-card-title"><i class="fas fa-user-cog"></i> Técnicos</h5>
+            </div>
+            <div class="hd-card-body">
+                <?php
+                $tecnicos = [
+                    ['cmendez', 'Carlos Méndez', 8, 'verde'],
+                    ['jrodriguez', 'Juan Rodríguez', 5, 'naranja'],
+                    ['aperez', 'Ana Pérez', 3, 'azul'],
+                ];
+                foreach($tecnicos as $t): ?>
+                <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f1f5f9;">
+                    <div class="hd-avatar" style="width:34px;height:34px;font-size:0.8rem;"><?= strtoupper(substr($t[0],0,1)) ?></div>
+                    <div style="flex:1;">
+                        <div style="font-size:0.83rem;font-weight:500;"><?= $t[1] ?></div>
+                        <div style="font-size:0.72rem;color:var(--muted);"><?= $t[2] ?> tickets asignados</div>
+                    </div>
+                    <span class="hd-tag hd-tag-<?= $t[3] ?>"><?= $t[2] ?></span>
+                </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<?php include_once '../includes/footer.php'; ?>
