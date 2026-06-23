@@ -1,99 +1,145 @@
 <?php
-
-// 1. Incluimos la conexión subiendo dos niveles
+session_start();
+if (!isset($_SESSION['usser']) || $_SESSION['id_rol'] != 3) {
+    header("Location: ../../index.php"); exit();
+}
 include('../../config/conexion.php');
 
-// 2. Capturamos el ID que viene por la URL
 $id = $_GET['id'] ?? null;
+if (!$id) die("ID no especificado.");
 
-if (!$id) {
-    die("ID de usuario no especificado.");
-}
-
-// 3. Traemos todas las opciones disponibles para armar los menú desplegables (SELECT)
 $query_deptos = $conexion->query("SELECT id_departamento, nombre FROM departamentos WHERE estado = 'activo'");
 $query_roles  = $conexion->query("SELECT id_rol, nombre FROM roles");
-
-// 4. Traemos los datos actuales del usuario que se va a editar
-$query_user = $conexion->query("SELECT id_usuario, nombres, apellidos, correo, usuario_login, telefono, estado, id_departamento, id_rol 
-                                FROM usuarios 
-                                WHERE id_usuario = " . (int)$id);
-
-$row = $query_user->fetch_assoc();
-
-if (!$row) {
-    die("El usuario no existe en el sistema.");
-}
-
+$query_user   = $conexion->query("SELECT * FROM usuarios WHERE id_usuario = " . (int)$id);
+$row          = $query_user->fetch_assoc();
+if (!$row) die("Usuario no encontrado.");
 ?>
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editar Usuario</title>
+    <title>Editar Usuario — HelpDesk Unicon</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../assets/css/dashboard.css">
+    <style>
+        body { font-family: 'Poppins', sans-serif; background: #f0f2f5; }
+        .page-wrapper { max-width: 700px; margin: 0 auto; padding: 24px 20px; }
+        .hd-form-group { margin-bottom: 14px; }
+        .hd-label { font-size: 0.78rem; font-weight: 600; color: var(--azul); margin-bottom: 5px; display: block; }
+        .hd-input {
+            width: 100%; padding: 8px 12px;
+            border: 1px solid var(--borde); border-radius: 6px;
+            font-family: 'Poppins', sans-serif; font-size: 0.82rem;
+            color: var(--texto); background: #fff;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+        }
+        .hd-input:focus { border-color: var(--naranja); box-shadow: 0 0 0 3px rgba(232,119,34,0.1); }
+        .hd-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 32px; }
+        .hd-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    </style>
 </head>
 <body>
 
-    <form action="edit_user.php" method="POST">
+<div class="page-wrapper">
 
-        <h1>Editar Usuario</h1>
+    <!-- HEADER -->
+    <div class="hd-page-header" style="margin-bottom:16px;">
+        <div>
+            <div class="hd-page-title"><i class="fas fa-user-edit" style="color:var(--naranja);margin-right:6px;"></i>Editar Usuario</div>
+            <div class="hd-page-sub">Modificando: <strong><?= htmlspecialchars($row['nombres'] . ' ' . $row['apellidos']) ?></strong></div>
+        </div>
+        <a href="usuarios.php" class="hd-btn hd-btn-outline hd-btn-sm"><i class="fas fa-arrow-left"></i> Volver</a>
+    </div>
 
-        <input type="hidden" name="id" value="<?= $row['id_usuario'] ?>">
-        
-        <label>Nombres:</label> <br>
-        <input type="text" name="name" placeholder="Nombres" value="<?= htmlspecialchars($row['nombres']) ?>">
-        <br><br>
-        
-        <label>Apellidos:</label> <br>
-        <input type="text" name="lastname" placeholder="Apellidos" value="<?= htmlspecialchars($row['apellidos']) ?>">
-        <br><br>
-        
-        <label>Correo:</label> <br>
-        <input type="email" name="email" placeholder="Correo" value="<?= htmlspecialchars($row['correo']) ?>">
-        <br><br>
-        
-        <label>Usuario de Login:</label> <br>
-        <input type="text" name="user" placeholder="Usuario" value="<?= htmlspecialchars($row['usuario_login']) ?>">
-        <br><br>
-        
-        <label>Teléfono:</label> <br>
-        <input type="text" name="phone_number" placeholder="Número (opcional)" value="<?= htmlspecialchars($row['telefono'] ?? '') ?>">
-        <br><br>
-        
-        <label>Departamento:</label> <br>
-        <select name="dpto">
-            <?php while ($depto = $query_deptos->fetch_assoc()): ?>
-                <option value="<?= $depto['id_departamento'] ?>" <?= $depto['id_departamento'] == $row['id_departamento'] ? 'selected' : '' ?>>
-                    <?= htmlspecialchars($depto['nombre']) ?>
-                </option>
-            <?php endwhile; ?>
-        </select>
-        <br><br>
-        
-        <label>Rol de Acceso:</label> <br>
-        <select name="role">
-            <?php while ($rol = $query_roles->fetch_assoc()): ?>
-                <option value="<?= $rol['id_rol'] ?>" <?= $rol['id_rol'] == $row['id_rol'] ? 'selected' : '' ?>>
-                    <?= htmlspecialchars($rol['nombre']) ?>
-                </option>
-            <?php endwhile; ?>
-        </select>
-        <br><br>
-        
-        <label>Estado de Cuenta:</label> <br>
-        <select name="state">
-            <option value="activo" <?= $row['estado'] == 'activo' ? 'selected' : '' ?>>Activo</option>
-            <option value="inactivo" <?= $row['estado'] == 'inactivo' ? 'selected' : '' ?>>Inactivo</option>
-            <option value="reposo" <?= $row['estado'] == 'reposo' ? 'selected' : '' ?>>Reposo</option>
-            <option value="pasante" <?= $row['estado'] == 'pasante' ? 'selected' : '' ?>>Pasante</option>
-        </select>
-        <br><br>
+    <!-- FORMULARIO -->
+    <div class="hd-card">
+        <div class="hd-card-header">
+            <h5 class="hd-card-title"><i class="fas fa-edit"></i> Información del Usuario</h5>
+            <span style="font-size:0.7rem;color:var(--muted);">ID #<?= $row['id_usuario'] ?></span>
+        </div>
+        <div class="hd-card-body">
+            <form action="../procesos/edit_user.php" method="POST">
+                <input type="hidden" name="id" value="<?= $row['id_usuario'] ?>">
 
-        <input type="submit" value="Actualizar información">
+                <div class="hd-form-row">
+                    <div class="hd-form-group">
+                        <label class="hd-label">Nombres</label>
+                        <input type="text" name="name" class="hd-input" value="<?= htmlspecialchars($row['nombres']) ?>" required>
+                    </div>
+                    <div class="hd-form-group">
+                        <label class="hd-label">Apellidos</label>
+                        <input type="text" name="lastname" class="hd-input" value="<?= htmlspecialchars($row['apellidos']) ?>" required>
+                    </div>
+                </div>
 
-    </form>
-    
+                <div class="hd-form-row">
+                    <div class="hd-form-group">
+                        <label class="hd-label">Correo</label>
+                        <input type="email" name="email" class="hd-input" value="<?= htmlspecialchars($row['correo']) ?>" required>
+                    </div>
+                    <div class="hd-form-group">
+                        <label class="hd-label">Usuario de Login</label>
+                        <input type="text" name="user" class="hd-input" value="<?= htmlspecialchars($row['usuario_login']) ?>" required>
+                    </div>
+                </div>
+
+                <div class="hd-form-group">
+                    <label class="hd-label">Teléfono <span style="color:var(--muted);font-weight:400;">(opcional)</span></label>
+                    <input type="text" name="phone_number" class="hd-input" value="<?= htmlspecialchars($row['telefono'] ?? '') ?>">
+                </div>
+
+                <div class="hd-form-row">
+                    <div class="hd-form-group">
+                        <label class="hd-label">Departamento</label>
+                        <select name="dpto" class="hd-input hd-select" required>
+                            <?php while ($depto = $query_deptos->fetch_assoc()): ?>
+                            <option value="<?= $depto['id_departamento'] ?>" <?= $depto['id_departamento'] == $row['id_departamento'] ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($depto['nombre']) ?>
+                            </option>
+                            <?php endwhile; ?>
+                        </select>
+                    </div>
+                    <div class="hd-form-group">
+                        <label class="hd-label">Rol de Acceso</label>
+                        <select name="role" class="hd-input hd-select" required>
+                            <?php while ($rol = $query_roles->fetch_assoc()): ?>
+                            <option value="<?= $rol['id_rol'] ?>" <?= $rol['id_rol'] == $row['id_rol'] ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($rol['nombre']) ?>
+                            </option>
+                            <?php endwhile; ?>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="hd-form-group">
+                    <label class="hd-label">Estado de Cuenta</label>
+                    <select name="state" class="hd-input hd-select">
+                        <option value="activo"   <?= $row['estado']=='activo'   ? 'selected':'' ?>>Activo</option>
+                        <option value="inactivo" <?= $row['estado']=='inactivo' ? 'selected':'' ?>>Inactivo</option>
+                        <option value="reposo"   <?= $row['estado']=='reposo'   ? 'selected':'' ?>>Reposo</option>
+                        <option value="pasante"  <?= $row['estado']=='pasante'  ? 'selected':'' ?>>Pasante</option>
+                        <option value="vacaciones" <?= $row['estado']=='vacaciones' ? 'selected':'' ?>>Vacaciones</option>
+                        <option value="suspendido" <?= $row['estado']=='suspendido' ? 'selected':'' ?>>Suspendido</option>
+                    </select>
+                </div>
+
+                <!-- BOTONES -->
+                <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px;padding-top:14px;border-top:1px solid var(--borde);">
+                    <a href="listar_usuarios.php" class="hd-btn hd-btn-outline">Cancelar</a>
+                    <button type="submit" class="hd-btn hd-btn-naranja">
+                        <i class="fas fa-save"></i> Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
