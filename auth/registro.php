@@ -106,26 +106,30 @@ if (!isset($conexion) || $conexion->connect_error) {
                         <span class="input-group-text"><i class="fas fa-building"></i></span>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="password" class="form-label small fw-bold text-muted">Contraseña</label>
-                        <div class="input-group">
-                            <input type="password" id="password" name="contraseña" class="form-control" required placeholder="Crea tu contraseña">
-                            <span class="input-group-text toggle-password" onclick="togglePassword('password', 'eye-icon-pass')">
-                                <i id="eye-icon-pass" class="fas fa-eye-slash"></i>
-                            </span>
-                        </div>
-                        <div class="progress mt-2" style="height: 5px;">
-                            <div id="password-strength-bar" class="progress-bar" role="progressbar" style="width: 0%;"></div>
-                        </div>
-                        <small id="password-feedback" class="text-muted d-block mt-1" style="font-size: 0.78rem;">Mínimo 12 caracteres, mayúsculas, números y símbolos.</small>
-                    </div>
-
-                    <div class="input-group mb-4">
-                        <input type="password" id="confirm_password" name="confirm_contraseña" required class="form-control" placeholder="Confirmar contraseña">
-                        <span class="input-group-text toggle-password" onclick="togglePassword('confirm_password', 'eye-icon-confirm')">
-                            <i id="eye-icon-confirm" class="fas fa-eye-slash"></i>
+                <div class="mb-3">
+                    <label for="password" class="form-label small fw-bold text-muted">Contraseña</label>
+                    <div class="input-group">
+                        <input type="password" id="password" name="contraseña" class="form-control" required placeholder="Crea tu contraseña">
+                        <span class="input-group-text toggle-password" onclick="togglePassword('password', 'eye-icon-pass')">
+                            <i id="eye-icon-pass" class="fas fa-eye-slash"></i>
                         </span>
                     </div>
+    
+                    <div class="progress mt-2" style="height: 5px;">
+                        <div id="password-strength-bar" class="progress-bar" role="progressbar" style="width: 0%;"></div>
+                    </div>
+    
+                    <small id="password-feedback" class="text-muted d-block mt-1" style="font-size: 0.78rem;">
+                        Mínimo 12 caracteres. Incluye mayúsculas, números y símbolos como: @, $, !, %, *, ?, &, ., ,.
+                    </small>
+                </div>
+
+                <div class="input-group mb-4">
+                    <input type="password" id="confirm_password" name="confirm_contraseña" required class="form-control" placeholder="Confirmar contraseña">
+                    <span class="input-group-text toggle-password" onclick="togglePassword('confirm_password', 'eye-icon-confirm')">
+                        <i id="eye-icon-confirm" class="fas fa-eye-slash"></i>
+                    </span>
+                </div>
 
                     <button type="submit" class="btn-ingresar w-100">Registrarse</button>
 
@@ -257,7 +261,7 @@ if (!isset($conexion) || $conexion->connect_error) {
             const hasMinLength = password.length >= 12;
             const hasUpper = /[A-Z]/.test(password);
             const hasNumber = /\d/.test(password);
-            const hasSpecial = /[@$!%*?&]/.test(password);
+            const hasSpecial = /[@$!%*?&.,]/.test(password);
         
             let strength = 0;
             if (hasMinLength) strength += 25;

@@ -1,16 +1,20 @@
 <?php
-require_once('../includes/constants.php');
+// CAMBIO 1: Usamos __DIR__ para que busque constants.php justo al lado de este archivo, sin importar desde dónde se llame
+require_once __DIR__ . '/constants.php';
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
 if (!isset($_SESSION['usser']) || !isset($_SESSION['id_rol'])) {
-    header("Location: ../index.php");
+    // CAMBIO 2: Usamos una ruta absoluta del servidor para que la redirección funcione desde cualquier subcarpeta
+    header("Location: /helpdesk_unicon/index.php");
     exit();
 }
 
 if (!isset($conexion)) {
-    require_once '../config/conexion.php';
+    // CAMBIO 3: Usamos __DIR__ y subimos un nivel para entrar de forma segura a la carpeta config/
+    require_once __DIR__ . '/../config/conexion.php';
 }
 
 $usuario_activo = $_SESSION['usser'];
@@ -73,7 +77,7 @@ $inicial = strtoupper(substr($usuario_activo, 0, 1));
                 <li class="nav-item dropdown">
                     <a class="hd-nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"><i class="fas fa-users-cog"></i> Usuarios</a>
                     <ul class="dropdown-menu hd-dropdown">
-                        <li><a class="dropdown-item" href="usuarios.php"><i class="fas fa-users"></i> Gestionar Usuarios</a></li>
+                        <li><a class="dropdown-item" href="../admin/procesos/usuarios.php"><i class="fas fa-users"></i> Gestionar Usuarios</a></li>
                         <li><a class="dropdown-item" href="roles.php"><i class="fas fa-shield-alt"></i> Roles y Permisos</a></li>
                         <li><a class="dropdown-item" href="departamentos.php"><i class="fas fa-building"></i> Departamentos</a></li>
                     </ul>

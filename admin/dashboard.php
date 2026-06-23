@@ -170,7 +170,7 @@
                 <div class="hd-card-body">
                     <div class="hd-quick-grid">
                         <a href="tickets_crear.php" class="hd-quick-btn"><i class="fas fa-plus-circle"></i> Crear Ticket</a>
-                        <a href="usuarios.php" class="hd-quick-btn"><i class="fas fa-users"></i> Usuarios</a>
+                        <a href="../admin/procesos/usuarios.php" class="hd-quick-btn"><i class="fas fa-users"></i> Usuarios</a>
                         <a href="inventario.php" class="hd-quick-btn"><i class="fas fa-server"></i> Inventario</a>
                         <a href="reportes.php" class="hd-quick-btn"><i class="fas fa-chart-bar"></i> Reportes</a>
                         <a href="departamentos.php" class="hd-quick-btn"><i class="fas fa-building"></i> Deptos.</a>

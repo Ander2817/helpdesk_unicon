@@ -26,6 +26,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         exit();
     }
 
+    // Validar que tenga al menos una mayúscula, un número y un carácter especial
+    if (!preg_match('/[A-Z]/', $password) || !preg_match('/\d/', $password) || !preg_match('/[@$!%*?&.,]/', $password)) {
+        set_alerta_flash('danger', 'La contraseña debe incluir al menos una mayúscula, un número y un carácter especial (@$!%*?&).');
+        redirigir('registro.php#registrarse');
+        exit();
+    }
+
     $crypted_password = (password_hash($password, PASSWORD_DEFAULT));
 
 
