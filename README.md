@@ -12,7 +12,7 @@ Backend: PHP (con manejo de sesiones seguro).
 
 Base de Datos: MySQL (XAMPP).
 
-Frontend: HTML5, CSS3 (diseño responsivo con variables CSS).
+Frontend: HTML5, CSS3, Bootstrap 5 (para una interfaz responsiva, moderna y ágil).
 
 Interfaz: FontAwesome para iconos y componentes visuales personalizados.
 
@@ -36,7 +36,7 @@ Verifica que la conexión en config/conexion.php coincida con tus credenciales d
 
 Acceso: Abre tu navegador y dirígete a http://localhost/helpdesk_unicon/index.php
 
-👨‍💻 Autor
+👨‍💻 Autores
 Proyecto desarrollado por: Ángel Romero, Jhoander Adrian y Leandro Monterrey
 Empresa: Unicon, La Victoria.
 
