@@ -36,4 +36,4 @@ define('TIEMPO_SESION_MINUTOS', 30);
 // 6. CONTACTO CORPORATIVO
 define('EMAIL_SOPORTE', 'SoporteTecnicoSistemas@unicon.com.ve');
 define('TELEFONO_SOPORTE', '+58 (244) 400.4800');
-define('EXT', '2386')
+define('EXT', '2386');

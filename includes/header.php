@@ -1,4 +1,5 @@
 <?php
+require_once('../includes/constants.php');
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -59,7 +60,7 @@ $inicial = strtoupper(substr($usuario_activo, 0, 1));
             <!-- MENÚ SEGÚN ROL -->
             <ul class="navbar-nav ms-4 me-auto hd-nav-links">
 
-                <?php if ($rol_id == 3): // ADMIN ?>
+                <?php if ($rol_id == ROL_ADMIN): // ADMIN ?>
                 <li class="nav-item"><a href="dashboard.php" class="hd-nav-link <?= basename($_SERVER['PHP_SELF']) == 'dashboard.php' ? 'active' : '' ?>"><i class="fas fa-chart-line"></i> Panel</a></li>
                 <li class="nav-item dropdown">
                     <a class="hd-nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"><i class="fas fa-ticket-alt"></i> Tickets</a>
@@ -88,7 +89,7 @@ $inicial = strtoupper(substr($usuario_activo, 0, 1));
                 <li class="nav-item"><a href="inventario.php" class="hd-nav-link"><i class="fas fa-server"></i> Inventario</a></li>
                 <li class="nav-item"><a href="reportes.php" class="hd-nav-link"><i class="fas fa-chart-bar"></i> Reportes</a></li>
 
-                <?php elseif ($rol_id == 2): // TÉCNICO ?>
+                <?php elseif ($rol_id == ROL_TECNICO): // TÉCNICO ?>
                 <li class="nav-item"><a href="dashboard.php" class="hd-nav-link <?= basename($_SERVER['PHP_SELF']) == 'dashboard.php' ? 'active' : '' ?>"><i class="fas fa-home"></i> Panel</a></li>
                 <li class="nav-item dropdown">
                     <a class="hd-nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"><i class="fas fa-ticket-alt"></i> Mis Tickets</a>

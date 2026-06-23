@@ -1,12 +1,16 @@
 <?php
 session_start();
 require_once('../config/conexion.php');
+require_once('../includes/constants.php'); // Asegura que existan ROL_ADMIN y ROL_TECNICO
+require_once('../includes/functions.php'); // Asegura que existan redirigir, sanear_entrada y set_alerta_flash
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
-    $usser    = trim($_POST['user_login']);
+    // Saneamos la entrada del usuario antes de buscar en la BD
+    $usser   = limpiar_inputs($_POST['user_login']);
     $password = $_POST['password'];
 
+    // Preparamos la consulta segura
     $stmt = $conexion->prepare("SELECT usuario_login, contraseña, id_rol FROM usuarios WHERE usuario_login = ?");
     $stmt->bind_param("s", $usser);
     $stmt->execute();
@@ -16,31 +20,31 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $row = $result->fetch_assoc();
         $hash_password = $row['contraseña'];
 
+        // Verificamos la contraseña encriptada
         if (password_verify($password, $hash_password)) {
             $_SESSION['usser']  = $usser;
             $_SESSION['id_rol'] = $row['id_rol'];
 
-            // Redirigir según rol
-            if ($_SESSION['id_rol'] == 3) {
-                header("Location: ../admin/dashboard.php");
-            } elseif ($_SESSION['id_rol'] == 2) {
-                header("Location: ../tecnico/dashboard.php");
+            // Redirigir según rol usando la función centralizada
+            if ($_SESSION['id_rol'] == ROL_ADMIN) {
+                redirigir('../admin/dashboard.php');
+            } elseif ($_SESSION['id_rol'] == ROL_TECNICO) {
+                redirigir('../tecnico/dashboard.php');
             } else {
-                header("Location: ../usuario/dashboard.php");
+                redirigir('../usuario/dashboard.php');
             }
-            exit();
 
         } else {
-            header("Location: ../index.php?error=clave");
-            exit();
+            set_alerta_flash('danger', 'Credenciales incorrectas.');
+            redirigir('../index.php');
         }
     } else {
-        header("Location: ../index.php?error=usuario");
-        exit();
+        set_alerta_flash('danger', 'El usuario no existe.');
+        redirigir('../index.php');
     }
-
+    
 } else {
-    header("Location: ../index.php");
-    exit();
+    // Si intentan entrar escribiendo la URL directa en el navegador, los rebota al index
+    redirigir('../index.php');
 }
 ?>

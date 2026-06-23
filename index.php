@@ -1,3 +1,9 @@
+<?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+require_once('includes/functions.php');
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -10,48 +16,37 @@
 </head>
 <body class="login-page">
 
-    <!-- Logo superior derecho -->
     <div class="position-absolute" style="top: 20px; right: 30px; z-index: 1000;">
         <img src="assets/img/logo_empresa.png" alt="Logo Unicon" style="max-height: 55px; width: auto;">
     </div>
 
-    <!-- Contenido principal -->
     <div class="login-wrapper">
 
-        <!-- Título -->
         <h1 class="login-title">
             <span class="title-help">HelpDesk</span>
             <span class="title-unicon">Unicon</span>
         </h1>
 
-        <!-- Tarjeta -->
         <div class="login-card">
             <div class="login-card-accent"></div>
             <div class="login-card-body">
 
                 <p class="login-subtitle">Inicia sesión en tu cuenta</p>
 
-                <?php if (isset($_GET['error'])): ?>
-                    <div id="php-alert" class="alert alert-danger">
-                        <?php
-                            if ($_GET['error'] === 'clave')   echo '⚠️ Contraseña incorrecta.';
-                            if ($_GET['error'] === 'usuario') echo '⚠️ Usuario no encontrado.';
-                        ?>
-                    </div>
-                <?php endif; ?>
+                <div id="php-alert">
+                    <?php echo mostrar_alerta_sistema(); ?>
+                </div>
 
                 <div id="mensaje-error" class="alert alert-danger d-none"></div>
 
                 <form id="form-login" action="auth/login.php" method="post">
 
-                    <!-- Usuario -->
                     <div class="input-group mb-3">
                         <input type="text" id="username" name="user_login"
                                class="form-control" placeholder="Usuario" autocomplete="username">
                         <span class="input-group-text"><i class="fas fa-user"></i></span>
                     </div>
 
-                    <!-- Contraseña -->
                     <div class="input-group mb-2">
                         <input type="password" id="password" name="password"
                                class="form-control" placeholder="Contraseña" autocomplete="current-password">
@@ -60,7 +55,6 @@
                         </span>
                     </div>
 
-                    <!-- Recordarme + Olvidaste contraseña -->
                     <div class="d-flex justify-content-between align-items-center mb-3 mt-2">
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="recordarme" name="recordarme">
@@ -71,12 +65,10 @@
                         <a href="auth/recuperar.php" class="link-naranja small">¿Olvidaste tu contraseña?</a>
                     </div>
 
-                    <!-- Botón -->
                     <button type="submit" class="btn-ingresar w-100">
                         Ingresar
                     </button>
 
-                    <!-- Registro -->
                     <p class="text-center mt-3 mb-0 small text-muted">
                         ¿No tienes una cuenta? 
                         <a href="auth/registro.php" class="link-naranja">Regístrate aquí</a>
@@ -87,11 +79,8 @@
         </div>
     </div>
 
-    <!-- Footer -->
     <footer>
     <div class="footer-grid" style="font-size: 1.05rem;">
-        
-        <!-- Columna 1: Enlaces de Acceso Público  -->
         <div>
             <h6 class="footer-titulo mb-4">ACCESO</h6>
             <ul class="footer-lista list-unstyled p-0 m-0">
@@ -101,7 +90,7 @@
                 </li>
                 <li class="mb-3">
                     <i class="fas fa-user-plus me-2 naranja fs-5"></i>
-                    <a href="registro.php" class="text-decoration-none text-white">Crear Cuenta</a>
+                    <a href="auth/registro.php" class="text-decoration-none text-white">Crear Cuenta</a>
                 </li>
                 <li class="mb-3">
                     <i class="fas fa-key me-2 naranja fs-5"></i>
@@ -110,7 +99,6 @@
             </ul>
         </div>
 
-        <!-- Columna 2: Empresa -->
         <div>
             <h6 class="footer-titulo mb-4">EMPRESA</h6>
             <ul class="footer-lista text-white list-unstyled p-0 m-0">
@@ -136,7 +124,6 @@
             </ul>
         </div>
 
-        <!-- Columna 3: Contacto -->
         <div>
             <h6 class="footer-titulo mb-4">CONTACTO</h6>
             <ul class="footer-lista text-white list-unstyled p-0 m-0">
@@ -159,7 +146,6 @@
             </ul>
         </div>
 
-        <!-- Columna 4: Descripción del HelpDesk -->
         <div>
             <h6 class="footer-titulo mb-4">HELPDESK UNICON</h6>
             <p class="footer-desc text-white m-0" style="text-align: justify; text-justify: inter-word; line-height: 1.8;">
@@ -176,25 +162,24 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // === AGREGA ESTO DESDE AQUÍ ===
     document.getElementById('form-login').addEventListener('submit', function(e) {
         const username = document.getElementById('username').value.trim();
         const password = document.getElementById('password').value.trim();
         const mensajeError = document.getElementById('mensaje-error');
         const phpAlert = document.getElementById('php-alert');
 
-    // Si alguno está vacío, frena el envío y muestra la alerta en caliente
         if (username === '' || password === '') {
             e.preventDefault(); 
 
-        if (phpAlert) {
-            phpAlert.classList.add('d-none'); // Oculta el error viejo de la Base de Datos
-        }
+            if (phpAlert) {
+                phpAlert.innerHTML = ''; 
+            }
 
-        mensajeError.innerHTML = '⚠️ Introduzca sus datos.';
-        mensajeError.classList.remove('d-none'); // Muestra el nuevo error
+            mensajeError.innerHTML = '⚠️ Introduzca sus datos.';
+            mensajeError.classList.remove('d-none');
         }
     });
+
     document.getElementById('username').addEventListener('keydown', function(e) {
         if (e.key === 'Enter') {
             e.preventDefault();

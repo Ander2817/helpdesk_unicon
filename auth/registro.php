@@ -148,7 +148,7 @@ if (!isset($conexion) || $conexion->connect_error) {
                 </li>
                 <li class="mb-3">
                     <i class="fas fa-user-plus me-2 naranja fs-5"></i>
-                    <a href="registro.php" class="text-decoration-none text-white">Crear Cuenta</a>
+                    <a href="/auth/registro.php" class="text-decoration-none text-white">Crear Cuenta</a>
                 </li>
                 <li class="mb-3">
                     <i class="fas fa-key me-2 naranja fs-5"></i>
