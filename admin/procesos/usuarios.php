@@ -24,10 +24,10 @@ $query = $conexion->query("
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="../../assets/css/dashboard.css">
     <style>
-        /* Como está en subcarpeta de admin, el sidebar no aplica aquí */
-        /* Esta página es standalone con el mismo estilo */
         body { font-family: 'Poppins', sans-serif; background: #f0f2f5; }
         .page-wrapper { max-width: 1200px; margin: 0 auto; padding: 24px 20px; }
     </style>
@@ -36,7 +36,6 @@ $query = $conexion->query("
 
 <div class="page-wrapper">
 
-    <!-- ENCABEZADO -->
     <div class="hd-page-header" style="margin-bottom:16px;">
         <div>
             <div class="hd-page-title">
@@ -55,7 +54,6 @@ $query = $conexion->query("
         </div>
     </div>
 
-    <!-- TABLA -->
     <div class="hd-card">
         <div class="hd-card-header">
             <h5 class="hd-card-title"><i class="fas fa-list"></i> Usuarios Registrados</h5>
@@ -78,7 +76,7 @@ $query = $conexion->query("
                 </thead>
                 <tbody>
                     <?php while($row = mysqli_fetch_array($query)): ?>
-                    <tr>
+                    <tr id="usuario-row-<?= $row['id_usuario'] ?>">
                         <td><span style="font-family:monospace;color:var(--muted);font-size:0.7rem;">#<?= $row['id_usuario'] ?></span></td>
                         <td>
                             <div style="display:flex;align-items:center;gap:8px;">
@@ -121,13 +119,13 @@ $query = $conexion->query("
                                 <a href="actualizar.php?id=<?= $row['id_usuario'] ?>" class="hd-btn hd-btn-outline hd-btn-sm" title="Editar">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                                <a href="../procesos/eliminar.php?id=<?= $row['id_usuario'] ?>" 
-                                   class="hd-btn hd-btn-sm" 
-                                   style="background:#fef2f2;color:var(--danger);border:1px solid #fecaca;"
-                                   title="Eliminar"
-                                   onclick="return confirm('¿Seguro que deseas eliminar este usuario?')">
+                                <button type="button" 
+                                        class="hd-btn hd-btn-sm btn-eliminar" 
+                                        data-id="<?= $row['id_usuario'] ?>" 
+                                        style="background:#fef2f2;color:var(--danger);border:1px solid #fecaca;"
+                                        title="Eliminar">
                                     <i class="fas fa-trash"></i>
-                                </a>
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -139,6 +137,69 @@ $query = $conexion->query("
 
 </div>
 
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+$(document).on('click', '.btn-eliminar', function() {
+    var idUsuario = $(this).data('id'); 
+    
+    // 1. Reemplazamos el confirm viejo por SweetAlert2
+    Swal.fire({
+        title: '¿Estás seguro?',
+        text: "Esta acción no se puede deshacer. Se eliminará el usuario con ID #" + idUsuario,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#e87722', // Tu naranja corporativo
+        cancelButtonColor: '#64748b',  // Color gris/borde
+        confirmButtonText: '<i class="fas fa-trash"></i> Sí, eliminar',
+        cancelButtonText: 'Cancelar',
+        background: '#fff',
+        fontFamily: "'Poppins', sans-serif"
+    }).then((result) => {
+        
+        // 2. Si el usuario confirma la acción en el modal elegante...
+        if (result.isConfirmed) {
+            $.ajax({
+                url: '../procesos/delete.php', // Cambiado a eliminar_user.php para que coincida con tu backend
+                type: 'POST',
+                data: { id: idUsuario },
+                success: function(respuesta) {
+                    if (respuesta.trim() === 'success') {
+                        // Alerta de éxito moderna
+                        Swal.fire({
+                            title: '¡Eliminado!',
+                            text: 'El usuario ha sido borrado correctamente.',
+                            icon: 'success',
+                            confirmButtonColor: '#e87722'
+                        });
+
+                        // Tu animación original de desvanecimiento (¡se mantiene intacta!)
+                        $('#usuario-row-' + idUsuario).fadeOut(500, function() {
+                            $(this).remove(); 
+                        });
+                    } else {
+                        // Alerta de error estilizada si el backend falla
+                        Swal.fire({
+                            title: 'Error',
+                            text: respuesta,
+                            icon: 'error',
+                            confirmButtonColor: '#e87722'
+                        });
+                    }
+                },
+                error: function() {
+                    // Alerta de error si se cae la conexión de red
+                    Swal.fire({
+                        title: 'Error de conexión',
+                        text: 'No se pudo conectar con el servidor. Verifica la ruta o el estado del archivo PHP.',
+                        icon: 'error',
+                        confirmButtonColor: '#e87722'
+                    });
+                }
+            });
+        }
+    });
+});
+</script>
 </body>
 </html>

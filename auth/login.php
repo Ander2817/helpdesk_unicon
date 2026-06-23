@@ -24,6 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if (password_verify($password, $hash_password)) {
             $_SESSION['usser']  = $usser;
             $_SESSION['id_rol'] = $row['id_rol'];
+            $_SESSION['id_usuario'] = $row['id_usuario'];
 
             // Redirigir según rol usando la función centralizada
             if ($_SESSION['id_rol'] == ROL_ADMIN) {

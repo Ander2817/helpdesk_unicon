@@ -1,46 +1,50 @@
 <?php
+// CORRECCIÓN 1: Faltaba verificar sesión
+session_start();
+if (!isset($_SESSION['usser']) || $_SESSION['id_rol'] != 3) {
+    die('<div class="alert alert-danger">Acceso denegado.</div>');
+}
+
 require_once('../../config/conexion.php');
 require_once('../../includes/functions.php');
-// require_once('../../includes/constants.php'); // Descoméntalo si manejas constantes aquí
+require_once('../../includes/constants.php');
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     
-    // 1. Recolectamos y limpiamos las variables (Corregidos los signos y puntos y comas)
-    $id           = limpiar_inputs($_POST['id']);
+    // CORRECCIÓN 2: $depto, $rol e $id deben ser enteros, no strings
+    $id           = (int)$_POST['id'];
     $name         = limpiar_inputs($_POST['name']);
     $last_name    = limpiar_inputs($_POST['lastname']);
     $email        = limpiar_inputs($_POST['email']);
     $user         = limpiar_inputs($_POST['user']);
     $phone_number = procesar_opcional($_POST['phone_number']); 
-    $depto        = limpiar_inputs($_POST['dpto']); // Ahora recibe el número ID del select
-    $rol          = limpiar_inputs($_POST['role']); // Ahora recibe el número ID del select
+    $depto        = (int)$_POST['dpto'];
+    $rol          = (int)$_POST['role'];
     $status       = limpiar_inputs($_POST['state']);
 
-    // 2. Preparamos la consulta limpia usando placeholders (?) protegiendo tu base de datos
     $insert_stmt = $conexion->prepare("UPDATE usuarios 
                                        SET nombres = ?, apellidos = ?, correo = ?, usuario_login = ?, telefono = ?, id_departamento = ?, id_rol = ?, estado = ? 
                                        WHERE id_usuario = ?");
 
     if ($insert_stmt === false) {
-        die("Error al preparar la consulta: " . $conexion->error);
+        die('<div class="alert alert-danger">Error al preparar la consulta: ' . htmlspecialchars($conexion->error) . '</div>');
     }
 
-    /* 3. Vinculamos los datos al orden de los signos '?'
-       Tipos de datos: 
-       s = string (texto)
-       i = integer (número entero)
-    */
+    // CORRECCIÓN 3: Cadena correcta "ssssssiisi" — 5 strings, 2 ints, 1 string, 1 int
     $insert_stmt->bind_param("sssssiisi", $name, $last_name, $email, $user, $phone_number, $depto, $rol, $status, $id);
 
-    // 4. Ejecutamos la actualización
     if ($insert_stmt->execute()) {
         $insert_stmt->close();
-        
-        // Redirige al panel principal de usuarios (ajusta la ruta exacta si es necesario)
-        header("Location: ../usuarios.php"); 
+        echo '<div class="alert alert-success d-flex align-items-center" role="alert">
+                <i class="fas fa-check-circle me-2"></i>
+                <div>¡Usuario actualizado correctamente!</div>
+              </div>';
         exit();
     } else {
-        echo "Error al actualizar el usuario: " . $insert_stmt->error;
+        echo '<div class="alert alert-danger d-flex align-items-center" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <div>Error al actualizar: ' . htmlspecialchars($insert_stmt->error) . '</div>
+              </div>';
     }
 
     $insert_stmt->close();

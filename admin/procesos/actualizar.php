@@ -24,6 +24,7 @@ if (!$row) die("Usuario no encontrado.");
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../../assets/css/dashboard.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <style>
         body { font-family: 'Poppins', sans-serif; background: #f0f2f5; }
         .page-wrapper { max-width: 700px; margin: 0 auto; padding: 24px 20px; }
@@ -62,7 +63,7 @@ if (!$row) die("Usuario no encontrado.");
             <span style="font-size:0.7rem;color:var(--muted);">ID #<?= $row['id_usuario'] ?></span>
         </div>
         <div class="hd-card-body">
-            <form action="../procesos/edit_user.php" method="POST">
+            <form id="Form" method="POST">
                 <input type="hidden" name="id" value="<?= $row['id_usuario'] ?>">
 
                 <div class="hd-form-row">
@@ -83,7 +84,7 @@ if (!$row) die("Usuario no encontrado.");
                     </div>
                     <div class="hd-form-group">
                         <label class="hd-label">Usuario de Login</label>
-                        <input type="text" name="user" class="hd-input" value="<?= htmlspecialchars($row['usuario_login']) ?>" required>
+                        <input type="text" name="user" class="hd-input bg-light" value="<?= htmlspecialchars($row['usuario_login']) ?>" readonly>
                     </div>
                 </div>
 
@@ -128,9 +129,11 @@ if (!$row) die("Usuario no encontrado.");
                 </div>
 
                 <!-- BOTONES -->
+                <div id="resultado" class="mt-3"></div>
+
                 <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px;padding-top:14px;border-top:1px solid var(--borde);">
-                    <a href="listar_usuarios.php" class="hd-btn hd-btn-outline">Cancelar</a>
-                    <button type="submit" class="hd-btn hd-btn-naranja">
+                    <a href="usuarios.php" class="hd-btn hd-btn-outline">Cancelar</a>
+                    <button type="submit" id="send" class="hd-btn hd-btn-naranja">
                         <i class="fas fa-save"></i> Guardar Cambios
                     </button>
                 </div>
@@ -141,5 +144,34 @@ if (!$row) die("Usuario no encontrado.");
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// Capturamos el envío del formulario usando su ID correcto
+$("#Form").on("submit", function(e) {
+    // Evitamos que la página se recargue automáticamente
+    e.preventDefault(); 
+
+    var btn = $("#send");
+    // Deshabilitamos el botón para evitar que el usuario haga click muchas veces seguidas
+    btn.prop("disabled", true).html('<i class="fas fa-spinner fa-spin"></i> Guardando...');
+
+    $.ajax({
+        url : "../procesos/edit_user.php", // La ruta hacia tu archivo PHP de procesamiento
+        type : "POST",
+        data : $("#Form").serialize(), // Convierte todos los campos del formulario en una cadena de datos
+        success: function(resultado){
+            // Inyectamos la alerta HTML que devuelve el PHP dentro de nuestro div
+            $("#resultado").html(resultado);
+            
+            // Reactivamos el botón por si quieren volver a editar algo
+            btn.prop("disabled", false).html('<i class="fas fa-save"></i> Guardar Cambios');
+        },
+        error: function() {
+            // En caso de que falle la conexión o el servidor tire un error 500
+            $("#resultado").html('<div class="alert alert-danger"><i class="fas fa-times-circle me-2"></i>Error crítico de conexión con el servidor.</div>');
+            btn.prop("disabled", false).html('<i class="fas fa-save"></i> Guardar Cambios');
+        }
+    });
+});
+</script>
 </body>
 </html>
