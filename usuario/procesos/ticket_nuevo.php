@@ -1,9 +1,9 @@
 <?php
 // Incluimos la lógica de sesión antes que nada
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
-if (!isset($_SESSION['usser'])) { header("Location: ../auth/login.php"); exit(); }
+if (!isset($_SESSION['usser'])) { header("Location: ../../auth/login.php"); exit(); }
 
-include_once '../includes/header.php';
+include_once '../../includes/header2.php';
 ?>
 
 <main class="hd-main">
@@ -13,7 +13,7 @@ include_once '../includes/header.php';
             <h2><i class="fas fa-plus-circle" style="color:var(--naranja);margin-right:8px;"></i>Nuevo Ticket</h2>
             <p>Describe el problema técnico que estás experimentando.</p>
         </div>
-        <a href="dashboard.php" class="hd-btn hd-btn-outline">
+        <a href="../dashboard.php" class="hd-btn hd-btn-outline">
             <i class="fas fa-arrow-left"></i> Volver al Panel
         </a>
     </div>
@@ -69,4 +69,4 @@ include_once '../includes/header.php';
 
 </main>
 
-<?php include_once '../includes/footer.php'; ?>
+<?php include_once '../../includes/footer.php'; ?>

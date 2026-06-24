@@ -1,4 +1,5 @@
 <?php include_once '../includes/header2.php'; ?>
+<?php include_once '../includes/sidebar.php'; ?>
 
 <main class="hd-main">
 

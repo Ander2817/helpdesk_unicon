@@ -34,18 +34,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $insert_stmt->bind_param("sssssiisi", $name, $last_name, $email, $user, $phone_number, $depto, $rol, $status, $id);
 
     if ($insert_stmt->execute()) {
-        $insert_stmt->close();
-        
-        // Redirige al panel principal de usuarios (ajusta la ruta exacta si es necesario)
-        header("Location: ../usuarios.php"); 
-        exit();
+    $insert_stmt->close();
+    echo '<div class="alert alert-success d-flex align-items-center">
+            <i class="fas fa-check-circle me-2"></i>
+            <div>¡Usuario actualizado correctamente!</div>
+          </div>';
+    exit();
     } else {
-        echo '<div class="alert alert-danger d-flex align-items-center" role="alert">
-                <i class="fas fa-exclamation-triangle me-2"></i>
-                <div>Error al actualizar: ' . htmlspecialchars($insert_stmt->error) . '</div>
-              </div>';
+    echo '<div class="alert alert-danger d-flex align-items-center">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <div>Error al actualizar: ' . htmlspecialchars($insert_stmt->error) . '</div>
+          </div>';
+    $insert_stmt->close();
     }
 
-    $insert_stmt->close();
+
 }
 ?>
