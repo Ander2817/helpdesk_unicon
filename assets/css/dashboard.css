@@ -439,3 +439,10 @@ body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--t
     .hd-footer-grid { grid-template-columns: 1fr 1fr; }
     .hd-footer-bottom { flex-direction: column; gap: 4px; text-align: center; }
 }
+
+/* Bloquea la interacción visual del mouse en elementos de solo lectura */
+.hd-input[readonly] {
+    pointer-events: none; /* Evita clicks y selección */
+    cursor: not-allowed;
+    background-color: #f8f9fa !important; /* Tono grisáceo elegante */
+}

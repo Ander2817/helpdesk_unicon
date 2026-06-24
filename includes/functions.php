@@ -15,8 +15,9 @@ function verificar_sesion(): void {
 function limpiar_inputs(string $dato): string {
     $dato = trim($dato);
     $dato = stripslashes($dato);
-    return htmlspecialchars($dato, ENT_QUOTES, 'UTF-8');
-} 
+    return $dato;
+}
+
 
 function procesar_opcional(?string $dato): ?string { // para nulls como telefono
     if ($dato === null || empty(trim($dato))) {
