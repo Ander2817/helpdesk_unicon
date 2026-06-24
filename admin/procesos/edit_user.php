@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $insert_stmt->close();
         
         // Redirige al panel principal de usuarios (ajusta la ruta exacta si es necesario)
-        header("Location: ../usuarios.php"); 
+        header("Location: usuarios.php"); 
         exit();
     } else {
         echo "Error al actualizar el usuario: " . $insert_stmt->error;
