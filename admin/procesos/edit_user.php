@@ -35,16 +35,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     if ($insert_stmt->execute()) {
         $insert_stmt->close();
-<<<<<<< HEAD
         
         // Redirige al panel principal de usuarios (ajusta la ruta exacta si es necesario)
-        header("Location: usuarios.php"); 
-=======
-        echo '<div class="alert alert-success d-flex align-items-center" role="alert">
-                <i class="fas fa-check-circle me-2"></i>
-                <div>¡Usuario actualizado correctamente!</div>
-              </div>';
->>>>>>> 17adaf155e029e2b5051166ec3b2fae791d78fd4
+        header("Location: ../usuarios.php"); 
         exit();
     } else {
         echo '<div class="alert alert-danger d-flex align-items-center" role="alert">
