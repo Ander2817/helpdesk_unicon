@@ -40,7 +40,7 @@
             <i class="fas fa-users"></i> Usuarios
             <span class="hd-sidebar-count">16</span>
         </a>
-        <a href="departamentos.php" class="hd-sidebar-link">
+        <a href="procesos/departamentos.php" class="hd-sidebar-link">
             <i class="fas fa-building"></i> Departamentos
         </a>
         <a href="roles.php" class="hd-sidebar-link">

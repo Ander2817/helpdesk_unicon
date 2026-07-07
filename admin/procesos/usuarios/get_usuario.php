@@ -1,7 +1,7 @@
 <?php
 session_start();
 if (!isset($_SESSION['usser']) || $_SESSION['id_rol'] != 3) die('Acceso denegado.');
-include('../../config/conexion.php');
+include('../../../config/conexion.php');
 
 $id = (int)($_GET['id'] ?? 0);
 if (!$id) die('<div class="alert alert-danger">ID no válido.</div>');
@@ -96,7 +96,7 @@ $('#form-editar').off('submit').on('submit', function(e) {
     var btn = $('#btn-editar');
     btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Guardando...');
     $.ajax({
-        url: 'edit_user.php',
+        url: 'edit_user.php', // CORRECCIÓN: Al estar al mismo nivel, se llama directo
         type: 'POST',
         data: $(this).serialize(),
         success: function(r) {
@@ -107,7 +107,7 @@ $('#form-editar').off('submit').on('submit', function(e) {
             }
         },
         error: function() {
-            $('#resultado-editar').html('<div class="alert alert-danger">Error de conexión.</div>');
+            $('#resultado-editar').html('<div class="alert alert-danger">Error de conexión con el servidor.</div>');
             btn.prop('disabled', false).html('<i class="fas fa-save"></i> Guardar Cambios');
         }
     });

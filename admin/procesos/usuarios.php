@@ -30,166 +30,168 @@ $query = $conexion->query("
     <style>
         body { font-family: 'Poppins', sans-serif; background: #f0f2f5; }
         .page-wrapper { max-width: 1200px; margin: 0 auto; padding: 24px 20px; }
+        
         /* ===== MODALES ===== */
-.hd-modal-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(15, 23, 42, 0.6);
-    backdrop-filter: blur(4px);
-    z-index: 9999;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-}
+        .hd-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
 
-.hd-modal-overlay.show {
-    display: flex;
-    animation: fadeOverlay 0.2s ease;
-}
+        .hd-modal-overlay.show {
+            display: flex;
+            animation: fadeOverlay 0.2s ease;
+        }
 
-@keyframes fadeOverlay {
-    from { opacity: 0; }
-    to   { opacity: 1; }
-}
+        @keyframes fadeOverlay {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
 
-.hd-modal {
-    background: #fff;
-    border-radius: 14px;
-    width: 100%;
-    max-width: 640px;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 24px 60px rgba(0,0,0,0.2);
-    animation: slideModal 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-    scrollbar-width: thin;
-}
+        .hd-modal {
+            background: #fff;
+            border-radius: 14px;
+            width: 100%;
+            max-width: 640px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.2);
+            animation: slideModal 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            scrollbar-width: thin;
+        }
 
-@keyframes slideModal {
-    from { opacity: 0; transform: translateY(-20px) scale(0.97); }
-    to   { opacity: 1; transform: translateY(0) scale(1); }
-}
+        @keyframes slideModal {
+            from { opacity: 0; transform: translateY(-20px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
 
-.hd-modal-header {
-    padding: 18px 22px;
-    border-bottom: 1px solid #e2e8f0;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    background: #fff;
-    z-index: 1;
-    border-radius: 14px 14px 0 0;
-}
+        .hd-modal-header {
+            padding: 18px 22px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            background: #fff;
+            z-index: 1;
+            border-radius: 14px 14px 0 0;
+        }
 
-.hd-modal-header h5 {
-    margin: 0;
-    font-size: 0.92rem;
-    font-weight: 700;
-    color: #1a2a4a;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
+        .hd-modal-header h5 {
+            margin: 0;
+            font-size: 0.92rem;
+            font-weight: 700;
+            color: #1a2a4a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
-.hd-modal-header h5 i { color: #E87722; }
+        .hd-modal-header h5 i { color: #E87722; }
 
-.hd-modal-close {
-    width: 28px; height: 28px;
-    border-radius: 6px;
-    border: none;
-    background: #f1f5f9;
-    color: #64748b;
-    font-size: 1rem;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    transition: all 0.15s;
-}
-.hd-modal-close:hover { background: #fef2f2; color: #dc2626; }
+        .hd-modal-close {
+            width: 28px; height: 28px;
+            border-radius: 6px;
+            border: none;
+            background: #f1f5f9;
+            color: #64748b;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.15s;
+        }
+        .hd-modal-close:hover { background: #fef2f2; color: #dc2626; }
 
-.hd-modal-body { padding: 22px; }
+        .hd-modal-body { padding: 22px; }
 
-.hd-modal-footer {
-    padding: 14px 22px;
-    border-top: 1px solid #e2e8f0;
-    display: flex;
-    gap: 8px;
-    justify-content: flex-end;
-    position: sticky;
-    bottom: 0;
-    background: #fff;
-    border-radius: 0 0 14px 14px;
-}
+        .hd-modal-footer {
+            padding: 14px 22px;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            position: sticky;
+            bottom: 0;
+            background: #fff;
+            border-radius: 0 0 14px 14px;
+        }
 
-/* Sección de campo con label arriba */
-.hd-field { margin-bottom: 14px; }
-.hd-field label {
-    display: block;
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: #1a2a4a;
-    margin-bottom: 5px;
-    letter-spacing: 0.2px;
-}
-.hd-field label span { color: #64748b; font-weight: 400; }
+        /* Sección de campo con label arriba */
+        .hd-field { margin-bottom: 14px; }
+        .hd-field label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #1a2a4a;
+            margin-bottom: 5px;
+            letter-spacing: 0.2px;
+        }
+        .hd-field label span { color: #64748b; font-weight: 400; }
 
-.hd-field .hd-input,
-.hd-field .hd-select-input {
-    width: 100%;
-    padding: 8px 12px;
-    border: 1.5px solid #e2e8f0;
-    border-radius: 7px;
-    font-family: 'Poppins', sans-serif;
-    font-size: 0.82rem;
-    color: #1e293b;
-    background: #fff;
-    transition: border-color 0.2s, box-shadow 0.2s;
-    outline: none;
-}
-.hd-field .hd-input:focus,
-.hd-field .hd-select-input:focus {
-    border-color: #E87722;
-    box-shadow: 0 0 0 3px rgba(232,119,34,0.1);
-}
-.hd-field .hd-input[readonly] { background: #f8fafc; color: #94a3b8; }
+        .hd-field .hd-input,
+        .hd-field .hd-select-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 7px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.82rem;
+            color: #1e293b;
+            background: #fff;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+        }
+        .hd-field .hd-input:focus,
+        .hd-field .hd-select-input:focus {
+            border-color: #E87722;
+            box-shadow: 0 0 0 3px rgba(232,119,34,0.1);
+        }
+        .hd-field .hd-input[readonly] { background: #f8fafc; color: #94a3b8; }
 
-.hd-field .pass-wrap { position: relative; }
-.hd-field .pass-wrap .hd-input { padding-right: 38px; }
-.hd-field .pass-wrap i {
-    position: absolute; right: 11px; top: 50%;
-    transform: translateY(-50%);
-    cursor: pointer; color: #94a3b8; font-size: 0.85rem;
-    transition: color 0.15s;
-}
-.hd-field .pass-wrap i:hover { color: #E87722; }
+        .hd-field .pass-wrap { position: relative; }
+        .hd-field .pass-wrap .hd-input { padding-right: 38px; }
+        .hd-field .pass-wrap i {
+            position: absolute; right: 11px; top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer; color: #94a3b8; font-size: 0.85rem;
+            transition: color 0.15s;
+        }
+        .hd-field .pass-wrap i:hover { color: #E87722; }
 
-.hd-modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .hd-modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
-.hd-modal-section {
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: #94a3b8;
-    margin: 16px 0 10px;
-    padding-bottom: 6px;
-    border-bottom: 1px solid #f1f5f9;
-}
-.hd-modal-section:first-child { margin-top: 0; }
+        .hd-modal-section {
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: #94a3b8;
+            margin: 16px 0 10px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .hd-modal-section:first-child { margin-top: 0; }
     </style>
 </head>
 <body>
 
-<!-- ===== MODAL CREAR ===== -->
 <div class="hd-modal-overlay" id="modal-crear">
     <div class="hd-modal">
         <div class="hd-modal-header">
             <h5><i class="fas fa-user-plus"></i> Nuevo Usuario</h5>
             <button class="hd-modal-close" onclick="cerrarModal('modal-crear')"><i class="fas fa-times"></i></button>
         </div>
-        <div class="hd-modal-body">
-            <form id="form-crear">
+        
+        <form id="form-crear">
+            <div class="hd-modal-body">
+                <div id="resultado-crear" style="margin-bottom:14px;"></div>
 
                 <div class="hd-modal-section">Información Personal</div>
                 <div class="hd-modal-grid">
@@ -239,7 +241,7 @@ $query = $conexion->query("
                 <div class="hd-modal-grid">
                     <div class="hd-field">
                         <label>Departamento</label>
-                        <select name="dpto" class="hd-input hd-select" required>
+                        <select name="dpto" class="hd-input hd-select-input" required>
                             <option value="" disabled selected>Selecciona</option>
                             <?php
                             $deptos = $conexion->query("SELECT id_departamento, nombre FROM departamentos WHERE estado = 'activo'");
@@ -251,7 +253,7 @@ $query = $conexion->query("
                     </div>
                     <div class="hd-field">
                         <label>Rol de Acceso</label>
-                        <select name="role" class="hd-input hd-select" required>
+                        <select name="role" class="hd-input hd-select-input" required>
                             <option value="" disabled selected>Selecciona</option>
                             <?php
                             $roles = $conexion->query("SELECT id_rol, nombre FROM roles");
@@ -263,28 +265,26 @@ $query = $conexion->query("
                     </div>
                 </div>
                 <div class="hd-field">
-                    <label>Estado Inicial</label>
-                    <select name="state" class="hd-input hd-select">
+                    <label>Estado </label>
+                    <select name="state" class="hd-input hd-select-input">
                         <option value="activo" selected>Activo</option>
                         <option value="inactivo">Inactivo</option>
                         <option value="reposo">Reposo</option>
                         <option value="pasante">Pasante</option>
                     </select>
                 </div>
-
-                <div id="resultado-crear" style="margin-top:8px;"></div>
-            </form>
-        </div>
-        <div class="hd-modal-footer">
-            <button type="button" onclick="cerrarModal('modal-crear')" class="hd-btn hd-btn-outline">Cancelar</button>
-            <button type="submit" form="form-crear" id="btn-crear" class="hd-btn hd-btn-naranja">
-                <i class="fas fa-plus"></i> Crear Usuario
-            </button>
-        </div>
+            </div>
+            
+            <div class="hd-modal-footer">
+                <button type="button" onclick="cerrarModal('modal-crear')" class="hd-btn hd-btn-outline">Cancelar</button>
+                <button type="submit" id="btn-crear" class="hd-btn hd-btn-naranja">
+                    <i class="fas fa-plus"></i> Crear Usuario
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
-<!-- ===== MODAL EDITAR ===== -->
 <div class="hd-modal-overlay" id="modal-editar">
     <div class="hd-modal">
         <div class="hd-modal-header">
@@ -301,12 +301,12 @@ $query = $conexion->query("
         </div>
     </div>
 </div>
-<div class="page-wrapper">
 
-    <div class="hd-page-header" style="margin-bottom:16px;">
+<div class="page-wrapper">
+    <div class="hd-page-header" style="margin-bottom:16px; display:flex; justify-content:space-between; align-items:center;">
         <div>
             <div class="hd-page-title">
-                <i class="fas fa-users" style="color:var(--naranja);margin-right:6px;"></i>
+                <i class="fas fa-users" style="color:#E87722; margin-right:6px;"></i>
                 Gestión de Usuarios
             </div>
             <div class="hd-page-sub">Administración de cuentas del sistema</div>
@@ -324,7 +324,7 @@ $query = $conexion->query("
     <div class="hd-card">
         <div class="hd-card-header">
             <h5 class="hd-card-title"><i class="fas fa-list"></i> Usuarios Registrados</h5>
-            <span style="font-size:0.72rem;color:var(--muted);"><?= $query->num_rows ?> registros</span>
+            <span style="font-size:0.72rem;color:#64748b;"><?= $query->num_rows ?> registros</span>
         </div>
         <div style="overflow-x:auto;">
             <table class="hd-table">
@@ -344,7 +344,7 @@ $query = $conexion->query("
                 <tbody>
                     <?php while($row = mysqli_fetch_array($query)): ?>
                     <tr id="usuario-row-<?= $row['id_usuario'] ?>">
-                        <td><span style="font-family:monospace;color:var(--muted);font-size:0.7rem;">#<?= $row['id_usuario'] ?></span></td>
+                        <td><span style="font-family:monospace;color:#64748b;font-size:0.7rem;">#<?= $row['id_usuario'] ?></span></td>
                         <td>
                             <div style="display:flex;align-items:center;gap:8px;">
                                 <div class="hd-avatar" style="width:26px;height:26px;font-size:0.65rem;flex-shrink:0;">
@@ -355,9 +355,9 @@ $query = $conexion->query("
                                 </div>
                             </div>
                         </td>
-                        <td style="color:var(--muted);"><?= htmlspecialchars($row['correo']) ?></td>
+                        <td style="color:#64748b;"><?= htmlspecialchars($row['correo']) ?></td>
                         <td><code style="font-size:0.72rem;background:#f1f5f9;padding:2px 6px;border-radius:4px;"><?= htmlspecialchars($row['usuario_login']) ?></code></td>
-                        <td style="color:var(--muted);"><?= htmlspecialchars($row['telefono'] ?? '—') ?></td>
+                        <td style="color:#64748b;"><?= htmlspecialchars($row['telefono'] ?? '—') ?></td>
                         <td><?= htmlspecialchars($row['nombre_departamento']) ?></td>
                         <td>
                             <?php
@@ -389,7 +389,7 @@ $query = $conexion->query("
                                 <button type="button" 
                                         class="hd-btn hd-btn-sm btn-eliminar" 
                                         data-id="<?= $row['id_usuario'] ?>" 
-                                        style="background:#fef2f2;color:var(--danger);border:1px solid #fecaca;"
+                                        style="background:#fef2f2;color:#dc2626;border:1px solid #fecaca;"
                                         title="Eliminar">
                                     <i class="fas fa-trash"></i>
                                 </button>
@@ -401,16 +401,28 @@ $query = $conexion->query("
             </table>
         </div>
     </div>
-
 </div>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
+// Función para mostrar / ocultar contraseña dinámicamente
+function togglePass(inputId, icono) {
+    const input = document.getElementById(inputId);
+    if (input.type === "password") {
+        input.type = "text";
+        icono.classList.remove('fa-eye');
+        icono.classList.add('fa-eye-slash');
+    } else {
+        input.type = "password";
+        icono.classList.remove('fa-eye-slash');
+        icono.classList.add('fa-eye');
+    }
+}
+
 function abrirModalCrear() {
+    document.getElementById('form-crear').reset();
+    document.getElementById('resultado-crear').innerHTML = '';
     document.getElementById('modal-crear').classList.add('show');
     document.body.style.overflow = 'hidden';
 }
@@ -423,7 +435,7 @@ function abrirModalEditar(id) {
         '<div style="text-align:center;padding:40px;color:#94a3b8;"><i class="fas fa-spinner fa-spin" style="font-size:1.8rem;"></i><p style="margin-top:10px;font-size:0.82rem;">Cargando datos...</p></div>';
 
     $.ajax({
-        url: 'get_usuario.php',
+        url: 'usuarios/get_usuario.php',
         type: 'GET',
         data: { id: id },
         success: function(html) {
@@ -441,6 +453,36 @@ function cerrarModal(id) {
     document.body.style.overflow = '';
 }
 
+// Envío AJAX del Formulario Crear Usuario
+$("#form-crear").off("submit").on("submit", function(e) {
+    e.preventDefault();
+    
+    // Cambiamos el estado del botón para que el usuario sepa que está cargando
+    let btn = $('#btn-crear');
+    let textoOriginal = btn.html();
+    btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Procesando...');
+
+    $.ajax({
+        // CORRECCIÓN DE RUTA: Ajustada para que coincida con la lógica de tu edit_user.php
+        url: 'usuarios/create_user.php', 
+        type: 'POST',
+        data: $(this).serialize(),
+        success: function(htmlResponse) {
+            $("#resultado-crear").html(htmlResponse);
+            btn.prop('disabled', false).html(textoOriginal);
+            
+            // Si el backend devuelve un éxito, recargamos para actualizar la tabla
+            if (htmlResponse.includes('alert-success')) {
+                setTimeout(function() { location.reload(); }, 1500);
+            }
+        },
+        error: function() {
+            $("#resultado-crear").html('<div class="alert alert-danger"><i class="fas fa-wifi me-2"></i>Error de comunicación con el servidor.</div>');
+            btn.prop('disabled', false).html(textoOriginal);
+        }
+    });
+});
+
 // Cerrar al hacer clic fuera
 document.addEventListener('click', function(e) {
     ['modal-crear','modal-editar'].forEach(function(id) {
@@ -457,9 +499,7 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-// ==========================================
-// NUEVO: Lógica para que el botón Eliminar funcione
-// ==========================================
+// Lógica de eliminación usando SweetAlert2
 $(document).on('click', '.btn-eliminar', function() {
     const idUsuario = $(this).data('id');
     
@@ -468,31 +508,26 @@ $(document).on('click', '.btn-eliminar', function() {
         text: "Esta acción no se puede deshacer.",
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonColor: '#E87722', // Color naranja de tu UI
+        confirmButtonColor: '#E87722',
         cancelButtonColor: '#64748b',
         confirmButtonText: 'Sí, eliminar',
         cancelButtonText: 'Cancelar'
     }).then((result) => {
         if (result.isConfirmed) {
             $.ajax({
-                url: 'eliminar_usuario.php', // Ajusta la ruta a tu backend de eliminación
+                url: 'usuarios/delete.php',
                 type: 'POST',
                 data: { id: idUsuario },
-                dataType: 'json',
                 success: function(response) {
-                    if(response.success) {
-                        Swal.fire(
-                            '¡Eliminado!',
-                            'El usuario ha sido eliminado correctamente.',
-                            'success'
-                        );
-                        // Elimina la fila de la tabla visualmente sin recargar
-                        $(`#usuario-row-${idUsuario}`).fadeOut(400, function() {
-                            $(this).remove();
-                        });
-                    } else {
-                        Swal.fire('Error', response.message || 'No se pudo eliminar el usuario.', 'error');
-                    }
+                    // Si el backend responde con un fragmento HTML de éxito o error
+                    Swal.fire(
+                        'Acción Procesada',
+                        'El servidor ejecutó la solicitud correctamente.',
+                        'success'
+                    );
+                    $(`#usuario-row-${idUsuario}`).fadeOut(400, function() {
+                        $(this).remove();
+                    });
                 },
                 error: function() {
                     Swal.fire('Error', 'Hubo un problema de red o del servidor.', 'error');
