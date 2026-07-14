@@ -39,6 +39,6 @@ Acceso: Abre tu navegador y dirígete a http://localhost/helpdesk_unicon/index.p
 👨‍💻 Autores
 Proyecto desarrollado por: Ángel Romero, Jhoander Adrian y Leandro Monterrey
 
-Empresa: Unicon, La Victoria.
+Empresa: Unicon, La Victoria - Aragua.
 
 Si encuentras algún problema, por favor documenta el error y verifica la configuración en config/conexion.php.
