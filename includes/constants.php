@@ -8,7 +8,7 @@ define('VERSION_SISTEMA', '1.0.0');
 define('EMPRESA_NOMBRE', 'Industrias Unicon C.A.');
 
 // Rutas base
-define('URL_BASE', 'http://localhost/helpdesk/'); 
+define('URL_BASE', 'http://localhost/helpdesk_unicon/'); 
 
 
 // 2. CONFIGURACIÓN DE ROLES
