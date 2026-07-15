@@ -37,7 +37,7 @@ Verifica que la conexión en config/conexion.php coincida con tus credenciales d
 Acceso: Abre tu navegador y dirígete a http://localhost/helpdesk_unicon/index.php
 
 👨‍💻 Autores
-Proyecto desarrollado por: Ángel Romero, Jhoander Adrian y Leandro Monterrey
+Proyecto desarrollado por: Ángel Romero, Jhoander Adrian y Leandro Monterrey.
 
 Empresa: Unicon, La Victoria - Aragua.
 
