@@ -52,7 +52,7 @@ $enlace = URL_BASE . "auth/resetear.php?token=" . $token;
 echo '<div class="alert alert-success small">
         <i class="fas fa-check-circle me-2"></i>
         <strong>Enlace generado correctamente.</strong><br>
-        <span style="color:#64748b;">Cuando esta funcionalidad esté configurado, llegará  un enlace desde: <strong>SoporteTecnicoSistemas@unicon.com.ve </strong></span>
+        <span style="color:#64748b;">Cuando esta funcionalidad esté configurada, llegará  un enlace desde: <strong>SoporteTecnicoSistemas@unicon.com.ve </strong></span>
       </div>
       <div class="alert alert-warning small mt-2">
         <i class="fas fa-flask me-2"></i>
