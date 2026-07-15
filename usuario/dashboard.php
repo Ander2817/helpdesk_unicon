@@ -81,7 +81,7 @@
                 <div class="hd-card-header"><h5 class="hd-card-title"><i class="fas fa-plus-circle"></i> Reportar Problema</h5></div>
                 <div class="hd-card-body">
                     <p style="font-size:0.75rem;color:var(--muted);margin-bottom:10px;">¿Tienes un problema técnico? El equipo de TI lo atenderá.</p>
-                    <a href="procesos/ticket_nuevo.php" class="hd-btn hd-btn-naranja" style="width:100%;justify-content:center;"><i class="fas fa-plus"></i> Crear Ticket</a>
+                    <a href="ticket_nuevo.php" class="hd-btn hd-btn-naranja" style="width:100%;justify-content:center;"><i class="fas fa-plus"></i> Crear Ticket</a>
                     <div style="margin-top:8px;padding:8px;background:#f8fafc;border-radius:6px;text-align:center;font-size:0.7rem;color:var(--muted);">
                         <i class="fas fa-clock" style="color:var(--naranja);"></i> Respuesta prom.: <strong>2.4h</strong>
                     </div>
