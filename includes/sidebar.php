@@ -79,8 +79,11 @@
 
     <div class="hd-sidebar-section">
         <div class="hd-sidebar-label">Mis Tickets</div>
+        <a href="tickets_sin_asignar.php" class="hd-sidebar-link <?= $pagina_actual=='tickets_sin_asignar.php'?'active':'' ?>">
+            <i class="fas fa-inbox"></i> Sin Asignar
+        </a>
         <a href="tickets_asignados.php" class="hd-sidebar-link <?= $pagina_actual=='tickets_asignados.php'?'active':'' ?>">
-            <i class="fas fa-inbox"></i> Asignados a Mí
+            <i class="fas fa-user-check"></i> Asignados a Mí
             <span class="hd-sidebar-count naranja">7</span>
         </a>
         <a href="tickets_pendientes.php" class="hd-sidebar-link">

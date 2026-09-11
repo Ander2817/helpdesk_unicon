@@ -6,8 +6,13 @@ if (!isset($_SESSION['usser']) || !isset($_SESSION['id_rol'])) {
 include('../config/conexion.php');
 
 // Datos para los selects
-$categorias = $conexion->query("SELECT id_categoria, nombre FROM categoria_incidencias WHERE estado = 'activo'");
-$prioridades = $conexion->query("SELECT id_prioridad, nombre, nivel FROM prioridades ORDER BY nivel ASC");
+$categorias = $conexion->query("
+    SELECT c.id_categoria, c.nombre, p.id_prioridad, p.nombre AS prioridad_nombre, p.nivel AS prioridad_nivel
+    FROM categoria_incidencias c
+    LEFT JOIN prioridades p ON c.id_prioridad_default = p.id_prioridad
+    WHERE c.estado = 'activo'
+    ORDER BY c.nombre ASC
+");
 $inventario  = $conexion->query("
     SELECT i.id_inventario, i.codigo_equipo, i.tipo_equipo, i.marca, i.modelo 
     FROM inventario_tecnologico i
@@ -60,26 +65,16 @@ $inventario  = $conexion->query("
         }
         .hd-section-label:first-child { margin-top: 0; }
 
-        /* Prioridad visual */
-        .prioridad-options { display: flex; gap: 8px; flex-wrap: wrap; }
-        .prioridad-opt input[type="radio"] { display: none; }
-        .prioridad-opt label {
-            display: flex; align-items: center; gap: 6px;
-            padding: 7px 14px; border-radius: 7px;
-            border: 1.5px solid var(--borde);
-            font-size: 0.78rem; font-weight: 500;
-            cursor: pointer; transition: all 0.15s;
-            color: var(--muted);
+        /* Prioridad automática (informativa, según categoría) */
+        .prioridad-auto {
+            display: flex; align-items: center; gap: 8px;
+            padding: 9px 14px; border-radius: 7px;
+            border: 1.5px dashed var(--borde);
+            font-size: 0.8rem; font-weight: 500; color: var(--muted);
+            background: #f8fafc; min-height: 38px;
         }
-        .prioridad-opt input:checked + label {
-            border-color: currentColor;
-            font-weight: 600;
-        }
-        .prioridad-opt.baja   label { --c: #0284c7; }
-        .prioridad-opt.media  label { --c: #d97706; }
-        .prioridad-opt.alta   label { --c: #E87722; }
-        .prioridad-opt.critica label { --c: #dc2626; }
-        .prioridad-opt input:checked + label { color: var(--c); background: color-mix(in srgb, var(--c) 8%, white); border-color: var(--c); }
+        .prioridad-auto .dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; background: #cbd5e1; }
+        .prioridad-auto.activa { border-style: solid; }
 
         /* Inventario toggle */
         .inventario-toggle {
@@ -150,38 +145,25 @@ $inventario  = $conexion->query("
                 <div class="hd-form-row">
                     <div class="hd-form-group">
                         <label class="hd-label">Categoría <span>*</span></label>
-                        <select name="id_categoria" class="hd-input hd-select" required>
+                        <select name="id_categoria" id="select-categoria" class="hd-input hd-select" required onchange="actualizarPrioridad(this)">
                             <option value="" disabled selected>Selecciona una categoría</option>
                             <?php while ($cat = $categorias->fetch_assoc()): ?>
-                            <option value="<?= $cat['id_categoria'] ?>">
+                            <option value="<?= $cat['id_categoria'] ?>"
+                                data-prioridad-nombre="<?= htmlspecialchars($cat['prioridad_nombre'] ?? '') ?>"
+                                data-prioridad-nivel="<?= (int)($cat['prioridad_nivel'] ?? 0) ?>">
                                 <?= htmlspecialchars($cat['nombre']) ?>
                             </option>
                             <?php endwhile; ?>
                         </select>
                     </div>
                     <div class="hd-form-group">
-                        <label class="hd-label">Prioridad <span>*</span></label>
-                        <div class="prioridad-options" id="prioridad-wrap">
-                            <?php
-                            $prioridades->data_seek(0);
-                            $clases = ['baja','media','alta','critica'];
-                            $iconos = ['fas fa-arrow-down','fas fa-minus','fas fa-arrow-up','fas fa-fire'];
-                            $i = 0;
-                            while ($p = $prioridades->fetch_assoc()):
-                                $cls = $clases[$i] ?? 'media';
-                                $ico = $iconos[$i] ?? 'fas fa-minus';
-                                $checked = $p['nivel'] == 2 ? 'checked' : '';
-                            ?>
-                            <div class="prioridad-opt <?= $cls ?>">
-                                <input type="radio" name="id_prioridad"
-                                       id="prio-<?= $p['id_prioridad'] ?>"
-                                       value="<?= $p['id_prioridad'] ?>" <?= $checked ?>>
-                                <label for="prio-<?= $p['id_prioridad'] ?>">
-                                    <i class="<?= $ico ?>"></i>
-                                    <?= htmlspecialchars($p['nombre']) ?>
-                                </label>
-                            </div>
-                            <?php $i++; endwhile; ?>
+                        <label class="hd-label">Prioridad</label>
+                        <div class="prioridad-auto" id="prioridad-auto">
+                            <span class="dot" id="prioridad-dot"></span>
+                            <span id="prioridad-texto">Se asigna según la categoría</span>
+                        </div>
+                        <div style="font-size:0.68rem;color:var(--muted);margin-top:3px;">
+                            Se asigna automáticamente. Un técnico puede ajustarla si es necesario.
                         </div>
                     </div>
                 </div>
@@ -269,6 +251,32 @@ function initCounter(inputId, counterId, max) {
 }
 initCounter('asunto', 'cnt-asunto', 200);
 initCounter('descripcion', 'cnt-desc', 2000);
+
+// Actualiza el badge de prioridad automática según la categoría elegida
+const coloresNivel = { 1: '#0284c7', 2: '#d97706', 3: '#E87722', 4: '#dc2626' };
+function actualizarPrioridad(select) {
+    const opt = select.options[select.selectedIndex];
+    const nombre = opt.dataset.prioridadNombre;
+    const nivel = parseInt(opt.dataset.prioridadNivel) || 0;
+    const wrap = document.getElementById('prioridad-auto');
+    const dot = document.getElementById('prioridad-dot');
+    const texto = document.getElementById('prioridad-texto');
+
+    if (nombre) {
+        const color = coloresNivel[nivel] || '#94a3b8';
+        dot.style.background = color;
+        texto.textContent = nombre;
+        texto.style.color = color;
+        wrap.classList.add('activa');
+        wrap.style.borderColor = color;
+    } else {
+        dot.style.background = '#cbd5e1';
+        texto.textContent = 'Esta categoría no tiene prioridad configurada — un técnico la asignará';
+        texto.style.color = 'var(--muted)';
+        wrap.classList.remove('activa');
+        wrap.style.borderColor = '';
+    }
+}
 
 function toggleInventario(cb) {
     const wrap = document.getElementById('inventario-wrap');

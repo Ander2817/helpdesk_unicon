@@ -3,7 +3,7 @@ session_start();
 if (!isset($_SESSION['usser']) || (int)$_SESSION['id_rol'] < 2) {
     header("Location: ../../index.php"); exit();
 }
-include('../../config/conexion.php');
+include('../config/conexion.php');
 
 $query = $conexion->query("
     SELECT t.id_tickets, t.codigo_ticket, t.asunto, t.descripcion, t.fecha_creacion,

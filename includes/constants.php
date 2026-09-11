@@ -20,7 +20,9 @@ define('ROL_ADMIN', 3);
 // 3. ESTADOS DE TICKETS
 define('TICKET_ABIERTO', 1);
 define('TICKET_PROCESO', 2);
-define('TICKET_RESUELTO', 3);
+define('TICKET_PENDIENTE', 3);
+define('TICKET_RESUELTO', 4);
+define('TICKET_CERRADO', 5);
 
 // 4. ESTADOS DE INVENTARIO
 define('EQUIPO_OPERATIVO', 1);

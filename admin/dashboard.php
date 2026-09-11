@@ -1,5 +1,145 @@
-<?php include_once '../includes/header2.php'; ?>
-<?php include_once '../includes/sidebar.php'; ?>
+<?php
+session_start();
+require_once '../includes/constants.php';
+if (!isset($conexion)) require_once __DIR__ . '/../config/conexion.php';
+
+$colores_prioridad = [1=>'gris', 2=>'amarillo', 3=>'naranja', 4=>'rojo'];
+$colores_estado    = [1=>'azul', 2=>'naranja', 3=>'gris', 4=>'verde', 5=>'gris'];
+
+// ---- STATS ----
+$criticos_abiertos = $conexion->query("
+    SELECT COUNT(*) c FROM tickets t
+    JOIN prioridades p ON t.id_prioridad = p.id_prioridad
+    WHERE p.nivel = 4 AND t.id_estado NOT IN (" . TICKET_RESUELTO . "," . TICKET_CERRADO . ")
+")->fetch_assoc()['c'];
+
+$en_proceso = $conexion->query("SELECT COUNT(*) c FROM tickets WHERE id_estado = " . TICKET_PROCESO)->fetch_assoc()['c'];
+
+$resueltos_mes = $conexion->query("
+    SELECT COUNT(*) c FROM tickets
+    WHERE id_estado IN (" . TICKET_RESUELTO . "," . TICKET_CERRADO . ")
+    AND MONTH(fecha_cierre) = MONTH(CURDATE()) AND YEAR(fecha_cierre) = YEAR(CURDATE())
+")->fetch_assoc()['c'];
+
+$usuarios_activos = $conexion->query("SELECT COUNT(*) c FROM usuarios WHERE estado = 'activo'")->fetch_assoc()['c'];
+
+// ---- TICKETS RECIENTES (últimos 5) ----
+$recientes = $conexion->query("
+    SELECT t.id_tickets, t.codigo_ticket, t.asunto,
+           dep.nombre AS departamento_nombre,
+           asig.usuario_login AS tec_login,
+           p.nombre AS prioridad_nombre, p.nivel AS prioridad_nivel,
+           e.nombre AS estado_nombre, e.id_estado_ticket
+    FROM tickets t
+    JOIN departamentos dep ON t.id_departamento = dep.id_departamento
+    LEFT JOIN usuarios asig ON t.id_usuario_asignado = asig.id_usuario
+    JOIN prioridades p ON t.id_prioridad = p.id_prioridad
+    JOIN estados_ticket e ON t.id_estado = e.id_estado_ticket
+    ORDER BY t.fecha_creacion DESC
+    LIMIT 5
+");
+
+// ---- RESUMEN ----
+$total_tickets = $conexion->query("SELECT COUNT(*) c FROM tickets")->fetch_assoc()['c'];
+
+$tiempo_prom_row = $conexion->query("
+    SELECT ROUND(AVG(TIMESTAMPDIFF(HOUR, fecha_creacion, fecha_cierre)), 1) h
+    FROM tickets WHERE fecha_cierre IS NOT NULL
+")->fetch_assoc();
+$tiempo_prom = $tiempo_prom_row['h'] !== null ? $tiempo_prom_row['h'] . 'h' : '—';
+
+$sla_row = $conexion->query("
+    SELECT COUNT(*) total, SUM(CASE WHEN TIMESTAMPDIFF(MINUTE, t.fecha_creacion, t.fecha_cierre) <= p.tiempo_respuesta_objetivo THEN 1 ELSE 0 END) dentro
+    FROM tickets t JOIN prioridades p ON t.id_prioridad = p.id_prioridad
+    WHERE t.fecha_cierre IS NOT NULL
+")->fetch_assoc();
+$sla_pct = ($sla_row['total'] > 0) ? round(($sla_row['dentro'] / $sla_row['total']) * 100) . '%' : '—';
+
+$tecnicos_activos_n = $conexion->query("SELECT COUNT(*) c FROM usuarios WHERE id_rol = " . ROL_TECNICO . " AND estado='activo'")->fetch_assoc()['c'];
+$equipos_inv = $conexion->query("SELECT COUNT(*) c FROM inventario_tecnologico")->fetch_assoc()['c'];
+
+$resumen = [
+    ['Total Tickets', $total_tickets, 'azul'],
+    ['Tiempo prom.', $tiempo_prom, 'naranja'],
+    ['SLA cumplido', $sla_pct, 'verde'],
+    ['Técnicos activos', $tecnicos_activos_n, 'gris'],
+    ['Equipos inv.', $equipos_inv, 'gris'],
+];
+
+// ---- ACTIVIDAD (últimos cambios de estado + comentarios, combinados) ----
+$actividad = [];
+$hist = $conexion->query("
+    SELECT t.codigo_ticket, h.campo_modificado, h.valor_nuevo, h.fecha_cambio
+    FROM historial_ticket h JOIN tickets t ON h.id_ticket = t.id_tickets
+    ORDER BY h.fecha_cambio DESC LIMIT 4
+");
+while ($h = $hist->fetch_assoc()) {
+    $es_resuelto = stripos($h['valor_nuevo'], 'Resuelto') !== false;
+    $actividad[] = [
+        'icono' => $es_resuelto ? 'fas fa-check' : 'fas fa-exchange-alt',
+        'bg' => $es_resuelto ? 'eff6ff' : 'fff7ed',
+        'color' => $es_resuelto ? 'info' : 'warning',
+        'texto' => '#' . $h['codigo_ticket'] . ' → ' . $h['campo_modificado'] . ': ' . $h['valor_nuevo'],
+        'fecha' => $h['fecha_cambio'],
+    ];
+}
+$coment = $conexion->query("
+    SELECT t.codigo_ticket, c.fecha_comentario
+    FROM comentarios c JOIN tickets t ON c.id_ticket = t.id_tickets
+    ORDER BY c.fecha_comentario DESC LIMIT 4
+");
+while ($c = $coment->fetch_assoc()) {
+    $actividad[] = [
+        'icono' => 'fas fa-comment', 'bg' => 'f0fdf4', 'color' => 'success',
+        'texto' => 'Comentario en #' . $c['codigo_ticket'],
+        'fecha' => $c['fecha_comentario'],
+    ];
+}
+usort($actividad, fn($a, $b) => strtotime($b['fecha']) - strtotime($a['fecha']));
+$actividad = array_slice($actividad, 0, 4);
+
+function hace_tiempo_admin($fecha) {
+    $diff = time() - strtotime($fecha);
+    if ($diff < 3600) return round($diff / 60) . ' min';
+    if ($diff < 86400) return round($diff / 3600) . ' horas';
+    return round($diff / 86400) . ' días';
+}
+
+// ---- POR CATEGORÍA ----
+$cats_raw = $conexion->query("
+    SELECT c.nombre, COUNT(t.id_tickets) total
+    FROM categoria_incidencias c LEFT JOIN tickets t ON t.id_categoria = c.id_categoria
+    GROUP BY c.id_categoria ORDER BY total DESC
+")->fetch_all(MYSQLI_ASSOC);
+$max_cat = max(array_column($cats_raw, 'total')) ?: 1;
+$cats = array_map(fn($c) => [$c['nombre'], $c['total'], $max_cat > 0 ? round(($c['total'] / $max_cat) * 100) : 0], $cats_raw);
+
+// ---- POR DEPARTAMENTO ----
+$deps_raw = $conexion->query("
+    SELECT d.nombre, COUNT(t.id_tickets) total
+    FROM departamentos d LEFT JOIN tickets t ON t.id_departamento = d.id_departamento
+    GROUP BY d.id_departamento ORDER BY total DESC
+")->fetch_all(MYSQLI_ASSOC);
+$max_dep = max(array_column($deps_raw, 'total')) ?: 1;
+$deptos = array_map(fn($d) => [$d['nombre'], $d['total'], $max_dep > 0 ? round(($d['total'] / $max_dep) * 100) : 0], $deps_raw);
+
+// ---- TÉCNICOS ----
+$tecs_raw = $conexion->query("
+    SELECT u.usuario_login, u.nombres, u.apellidos,
+           COUNT(CASE WHEN t.id_estado IN (" . TICKET_RESUELTO . "," . TICKET_CERRADO . ") THEN 1 END) resueltos
+    FROM usuarios u LEFT JOIN tickets t ON t.id_usuario_asignado = u.id_usuario
+    WHERE u.id_rol = " . ROL_TECNICO . " AND u.estado = 'activo'
+    GROUP BY u.id_usuario ORDER BY resueltos DESC
+")->fetch_all(MYSQLI_ASSOC);
+$paleta_tecs = ['verde', 'naranja', 'azul', 'amarillo', 'gris'];
+$tecs = [];
+foreach ($tecs_raw as $i => $t) {
+    $tecs[] = [$t['usuario_login'], $t['nombres'] . ' ' . $t['apellidos'], $t['resueltos'], $paleta_tecs[$i] ?? 'gris'];
+}
+
+include_once '../includes/header2.php';
+include_once '../includes/sidebar.php';
+?>
 
 <main class="hd-main">
 
@@ -19,19 +159,19 @@
     <div class="hd-stats hd-stats-4">
         <div class="hd-stat rojo">
             <div class="hd-stat-icon rojo"><i class="fas fa-fire"></i></div>
-            <div><div class="hd-stat-num">04</div><div class="hd-stat-label">Críticos Abiertos</div></div>
+            <div><div class="hd-stat-num"><?= str_pad($criticos_abiertos, 2, '0', STR_PAD_LEFT) ?></div><div class="hd-stat-label">Críticos Abiertos</div></div>
         </div>
         <div class="hd-stat naranja">
             <div class="hd-stat-icon naranja"><i class="fas fa-spinner"></i></div>
-            <div><div class="hd-stat-num">12</div><div class="hd-stat-label">En Proceso</div></div>
+            <div><div class="hd-stat-num"><?= str_pad($en_proceso, 2, '0', STR_PAD_LEFT) ?></div><div class="hd-stat-label">En Proceso</div></div>
         </div>
         <div class="hd-stat verde">
             <div class="hd-stat-icon verde"><i class="fas fa-check-circle"></i></div>
-            <div><div class="hd-stat-num">38</div><div class="hd-stat-label">Resueltos mes</div></div>
+            <div><div class="hd-stat-num"><?= str_pad($resueltos_mes, 2, '0', STR_PAD_LEFT) ?></div><div class="hd-stat-label">Resueltos mes</div></div>
         </div>
         <div class="hd-stat azul">
             <div class="hd-stat-icon azul"><i class="fas fa-users"></i></div>
-            <div><div class="hd-stat-num">16</div><div class="hd-stat-label">Usuarios Activos</div></div>
+            <div><div class="hd-stat-num"><?= str_pad($usuarios_activos, 2, '0', STR_PAD_LEFT) ?></div><div class="hd-stat-label">Usuarios Activos</div></div>
         </div>
     </div>
 
@@ -58,33 +198,30 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <?php
-                        $tickets = [
-                            ['TK-0001','Falla de Red LAN','Manufactura','cmendez','Crítica','rojo','En Proceso','naranja'],
-                            ['TK-0002','PC no enciende','Contabilidad','jrodriguez','Alta','naranja','Abierto','azul'],
-                            ['TK-0003','Impresora sin tóner','RRHH','aperez','Baja','gris','Resuelto','verde'],
-                            ['TK-0004','Acceso SAP','Abastecimiento','cmendez','Media','amarillo','Pendiente','gris'],
-                            ['TK-0005','Error en correo','Logística','jrodriguez','Alta','naranja','En Proceso','naranja'],
-                        ];
-                        foreach($tickets as $t): ?>
+                        <?php if ($recientes->num_rows === 0): ?>
+                        <tr><td colspan="7" style="text-align:center;color:var(--muted);padding:16px;">Aún no hay tickets.</td></tr>
+                        <?php endif; ?>
+                        <?php while ($t = $recientes->fetch_assoc()): ?>
                         <tr>
-                            <td><span style="font-family:monospace;color:var(--muted);font-size:0.7rem;">#<?= $t[0] ?></span></td>
+                            <td><span style="font-family:monospace;color:var(--muted);font-size:0.7rem;">#<?= htmlspecialchars($t['codigo_ticket']) ?></span></td>
                             <td>
-                                <div style="font-weight:500;font-size:0.78rem;"><?= $t[1] ?></div>
-                                <div style="font-size:0.68rem;color:var(--muted);"><?= $t[2] ?></div>
+                                <div style="font-weight:500;font-size:0.78rem;"><?= htmlspecialchars($t['asunto']) ?></div>
+                                <div style="font-size:0.68rem;color:var(--muted);"><?= htmlspecialchars($t['departamento_nombre']) ?></div>
                             </td>
-                            <td style="color:var(--muted);"><?= $t[2] ?></td>
+                            <td style="color:var(--muted);"><?= htmlspecialchars($t['departamento_nombre']) ?></td>
                             <td>
+                                <?php if ($t['tec_login']): ?>
                                 <div style="display:flex;align-items:center;gap:5px;">
-                                    <div class="hd-avatar" style="width:20px;height:20px;font-size:0.6rem;"><?= strtoupper(substr($t[3],0,1)) ?></div>
-                                    <span><?= $t[3] ?></span>
+                                    <div class="hd-avatar" style="width:20px;height:20px;font-size:0.6rem;"><?= strtoupper(substr($t['tec_login'],0,1)) ?></div>
+                                    <span><?= htmlspecialchars($t['tec_login']) ?></span>
                                 </div>
+                                <?php else: ?><span style="color:var(--muted);">Sin asignar</span><?php endif; ?>
                             </td>
-                            <td><span class="hd-tag hd-tag-<?= $t[5] ?>"><?= $t[4] ?></span></td>
-                            <td><span class="hd-tag hd-tag-<?= $t[7] ?>"><?= $t[6] ?></span></td>
-                            <td><a href="ticket_ver.php?id=1" class="hd-btn hd-btn-outline hd-btn-sm"><i class="fas fa-eye"></i></a></td>
+                            <td><span class="hd-tag hd-tag-<?= $colores_prioridad[$t['prioridad_nivel']] ?? 'gris' ?>"><?= htmlspecialchars($t['prioridad_nombre']) ?></span></td>
+                            <td><span class="hd-tag hd-tag-<?= $colores_estado[$t['id_estado_ticket']] ?? 'gris' ?>"><?= htmlspecialchars($t['estado_nombre']) ?></span></td>
+                            <td><a href="ver_ticket.php?id=<?= $t['id_tickets'] ?>" class="hd-btn hd-btn-outline hd-btn-sm"><i class="fas fa-eye"></i></a></td>
                         </tr>
-                        <?php endforeach; ?>
+                        <?php endwhile; ?>
                     </tbody>
                 </table>
             </div>
@@ -99,15 +236,7 @@
                     <h5 class="hd-card-title"><i class="fas fa-chart-pie"></i> Resumen</h5>
                 </div>
                 <div class="hd-card-body" style="padding:8px 12px;">
-                    <?php
-                    $resumen = [
-                        ['Total Tickets','54','azul'],
-                        ['Tiempo prom.','2.4h','naranja'],
-                        ['SLA cumplido','91%','verde'],
-                        ['Técnicos activos','3','gris'],
-                        ['Equipos inv.','47','gris'],
-                    ];
-                    foreach($resumen as $r): ?>
+                    <?php foreach($resumen as $r): ?>
                     <div class="hd-list-item">
                         <span style="color:var(--muted);flex:1;"><?= $r[0] ?></span>
                         <span class="hd-tag hd-tag-<?= $r[2] ?>" style="font-weight:700;"><?= $r[1] ?></span>
@@ -122,19 +251,15 @@
                     <h5 class="hd-card-title"><i class="fas fa-history"></i> Actividad</h5>
                 </div>
                 <div class="hd-card-body" style="padding:8px 12px;">
-                    <?php
-                    $actividad = [
-                        ['fas fa-exclamation','fef2f2','danger','#TK-0001 marcado crítico','15 min'],
-                        ['fas fa-user-plus','f0fdf4','success','Usuario jperez creado','1 hora'],
-                        ['fas fa-check','eff6ff','info','#TK-0003 resuelto','3 horas'],
-                        ['fas fa-wrench','fff7ed','warning','#TK-0002 asignado','5 horas'],
-                    ];
-                    foreach($actividad as $a): ?>
+                    <?php if (empty($actividad)): ?>
+                    <div style="color:var(--muted);font-size:0.78rem;padding:8px 0;">Sin actividad reciente.</div>
+                    <?php endif; ?>
+                    <?php foreach($actividad as $a): ?>
                     <div class="hd-activity">
-                        <div class="hd-activity-dot" style="background:#<?= $a[1] ?>;color:var(--<?= $a[2] ?>);"><i class="<?= $a[0] ?>"></i></div>
+                        <div class="hd-activity-dot" style="background:#<?= $a['bg'] ?>;color:var(--<?= $a['color'] ?>);"><i class="<?= $a['icono'] ?>"></i></div>
                         <div>
-                            <div><?= $a[3] ?></div>
-                            <div class="hd-activity-time"><?= $a[4] ?></div>
+                            <div><?= htmlspecialchars($a['texto']) ?></div>
+                            <div class="hd-activity-time"><?= hace_tiempo_admin($a['fecha']) ?></div>
                         </div>
                     </div>
                     <?php endforeach; ?>
@@ -151,11 +276,12 @@
         <div class="hd-card">
             <div class="hd-card-header"><h5 class="hd-card-title"><i class="fas fa-tags"></i> Por Categoría</h5></div>
             <div class="hd-card-body" style="padding:8px 12px;">
-                <?php
-                $cats = [['Hardware',18,56],['Software',14,44],['Red',10,31],['Impresoras',7,22],['Accesos',5,16]];
-                foreach($cats as $c): ?>
+                <?php if (empty($cats)): ?>
+                <div style="color:var(--muted);font-size:0.78rem;">Sin datos.</div>
+                <?php endif; ?>
+                <?php foreach($cats as $c): ?>
                 <div class="hd-list-item">
-                    <span style="flex:1;"><?= $c[0] ?></span>
+                    <span style="flex:1;"><?= htmlspecialchars($c[0]) ?></span>
                     <div class="hd-progress"><div class="hd-progress-fill" style="width:<?= $c[2] ?>%;"></div></div>
                     <span style="color:var(--muted);min-width:20px;text-align:right;"><?= $c[1] ?></span>
                 </div>
@@ -167,11 +293,12 @@
         <div class="hd-card">
             <div class="hd-card-header"><h5 class="hd-card-title"><i class="fas fa-building"></i> Por Departamento</h5></div>
             <div class="hd-card-body" style="padding:8px 12px;">
-                <?php
-                $deptos = [['Manufactura',16,100],['Contabilidad',12,75],['RRHH',9,56],['Abastecimiento',8,50],['Logística',5,31]];
-                foreach($deptos as $d): ?>
+                <?php if (empty($deptos)): ?>
+                <div style="color:var(--muted);font-size:0.78rem;">Sin datos.</div>
+                <?php endif; ?>
+                <?php foreach($deptos as $d): ?>
                 <div class="hd-list-item">
-                    <span style="flex:1;"><?= $d[0] ?></span>
+                    <span style="flex:1;"><?= htmlspecialchars($d[0]) ?></span>
                     <div class="hd-progress"><div class="hd-progress-fill" style="width:<?= $d[2] ?>%;"></div></div>
                     <span style="color:var(--muted);min-width:20px;text-align:right;"><?= $d[1] ?></span>
                 </div>
@@ -186,13 +313,14 @@
                 <a href="procesos/usuarios.php" class="hd-btn hd-btn-ghost hd-btn-sm">Gestionar</a>
             </div>
             <div class="hd-card-body" style="padding:8px 12px;">
-                <?php
-                $tecs = [['cmendez','Carlos Méndez',8,'verde'],['jrodriguez','Juan Rodríguez',5,'naranja'],['aperez','Ana Pérez',3,'azul']];
-                foreach($tecs as $t): ?>
+                <?php if (empty($tecs)): ?>
+                <div style="color:var(--muted);font-size:0.78rem;">No hay técnicos activos.</div>
+                <?php endif; ?>
+                <?php foreach($tecs as $t): ?>
                 <div class="hd-list-item">
                     <div class="hd-avatar" style="width:24px;height:24px;font-size:0.65rem;"><?= strtoupper(substr($t[0],0,1)) ?></div>
                     <div style="flex:1;">
-                        <div style="font-weight:500;"><?= $t[1] ?></div>
+                        <div style="font-weight:500;"><?= htmlspecialchars($t[1]) ?></div>
                         <div style="font-size:0.68rem;color:var(--muted);"><?= $t[2] ?> tickets</div>
                     </div>
                     <span class="hd-tag hd-tag-<?= $t[3] ?>"><?= $t[2] ?></span>

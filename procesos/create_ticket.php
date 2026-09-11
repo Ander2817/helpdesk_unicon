@@ -12,12 +12,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $asunto      = trim($_POST['asunto'] ?? '');
     $descripcion = trim($_POST['descripcion'] ?? '');
     $id_categoria = (int)($_POST['id_categoria'] ?? 0);
-    $id_prioridad = (int)($_POST['id_prioridad'] ?? 0);
     $id_inventario = !empty($_POST['id_inventario']) ? (int)$_POST['id_inventario'] : null;
 
     // 2. Validaciones básicas
-    if (empty($asunto) || empty($descripcion) || !$id_categoria || !$id_prioridad) {
+    if (empty($asunto) || empty($descripcion) || !$id_categoria) {
         die('<div class="alert alert-warning"><i class="fas fa-exclamation-circle me-2"></i>Completa todos los campos obligatorios.</div>');
+    }
+
+    // 2.1 Prioridad automática según la categoría elegida
+    $stmt_prio = $conexion->prepare("SELECT id_prioridad_default FROM categoria_incidencias WHERE id_categoria = ? AND estado = 'activo'");
+    $stmt_prio->bind_param("i", $id_categoria);
+    $stmt_prio->execute();
+    $fila_categoria = $stmt_prio->get_result()->fetch_assoc();
+    $stmt_prio->close();
+
+    if (!$fila_categoria) {
+        die('<div class="alert alert-danger"><i class="fas fa-times-circle me-2"></i>La categoría seleccionada no es válida.</div>');
+    }
+
+    // Si la categoría no tiene prioridad por defecto configurada, se usa Media (nivel 2) como respaldo
+    if (!empty($fila_categoria['id_prioridad_default'])) {
+        $id_prioridad = (int)$fila_categoria['id_prioridad_default'];
+    } else {
+        $stmt_media = $conexion->prepare("SELECT id_prioridad FROM prioridades WHERE nivel = 2 LIMIT 1");
+        $stmt_media->execute();
+        $media = $stmt_media->get_result()->fetch_assoc();
+        $stmt_media->close();
+        $id_prioridad = $media['id_prioridad'] ?? 1;
     }
 
     // 3. Obtener datos del usuario solicitante
