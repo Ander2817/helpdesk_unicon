@@ -5,8 +5,14 @@ if (!isset($_SESSION['usser']) || !isset($_SESSION['id_rol'])) {
 }
 
 include('../config/conexion.php');
+require_once '../includes/adjuntos.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    // 0. Si el envío completo pesa más que post_max_size, PHP vacía $_POST y $_FILES sin avisar
+    if (empty($_POST) && empty($_FILES) && (int)($_SERVER['CONTENT_LENGTH'] ?? 0) > 0) {
+        die('<div class="alert alert-warning"><i class="fas fa-exclamation-circle me-2"></i>Los archivos adjuntos pesan demasiado en total (máximo ' . htmlspecialchars((string)ini_get('post_max_size')) . '). Quita alguno e inténtalo de nuevo.</div>');
+    }
 
     // 1. Recoger y limpiar datos
     $asunto      = trim($_POST['asunto'] ?? '');
@@ -39,6 +45,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $media = $stmt_media->get_result()->fetch_assoc();
         $stmt_media->close();
         $id_prioridad = $media['id_prioridad'] ?? 1;
+    }
+
+    // 2.2 Validar los archivos adjuntos (si hay alguno problemático, no se crea el ticket)
+    $adjuntos = adjuntos_normalizar($_FILES['adjuntos'] ?? null);
+    $errores_adjuntos = adjuntos_validar($adjuntos);
+    if ($errores_adjuntos) {
+        $items = '';
+        foreach ($errores_adjuntos as $e) $items .= '<li>' . htmlspecialchars($e) . '</li>';
+        die('<div class="alert alert-warning"><i class="fas fa-exclamation-circle me-2"></i>Revisa los archivos adjuntos:<ul class="mb-0 mt-1">' . $items . '</ul></div>');
     }
 
     // 3. Obtener datos del usuario solicitante
@@ -78,40 +93,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     $check->close();
 
-    // 6. Insertar ticket (estado 1 = Abierto, sin técnico asignado)
+    // 6. Insertar ticket (estado 1 = Abierto, sin técnico asignado) junto con sus adjuntos.
+    //    Todo en una transacción: o se guarda el ticket completo o no se guarda nada.
     $id_estado = 1;
-    $stmt = $conexion->prepare("
-        INSERT INTO tickets 
-        (codigo_ticket, asunto, descripcion, id_usuario_solicitante, id_departamento, id_categoria, id_prioridad, id_estado, id_inventario)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ");
+    $archivos_escritos = [];
 
-    $stmt->bind_param(
-        "sssiiiiii",
-        $codigo_ticket,
-        $asunto,
-        $descripcion,
-        $id_usuario_solicitante,
-        $id_departamento,
-        $id_categoria,
-        $id_prioridad,
-        $id_estado,
-        $id_inventario
-    );
-
-    if ($stmt->execute()) {
+    $conexion->begin_transaction();
+    try {
+        $stmt = $conexion->prepare("
+            INSERT INTO tickets
+            (codigo_ticket, asunto, descripcion, id_usuario_solicitante, id_departamento, id_categoria, id_prioridad, id_estado, id_inventario)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ");
+        $stmt->bind_param(
+            "sssiiiiii",
+            $codigo_ticket,
+            $asunto,
+            $descripcion,
+            $id_usuario_solicitante,
+            $id_departamento,
+            $id_categoria,
+            $id_prioridad,
+            $id_estado,
+            $id_inventario
+        );
+        $stmt->execute();
         $id_ticket_nuevo = $conexion->insert_id;
         $stmt->close();
+
+        adjuntos_guardar($conexion, $id_ticket_nuevo, $adjuntos, $archivos_escritos);
+        $conexion->commit();
+
+        $detalle_adjuntos = $adjuntos
+            ? ' · ' . count($adjuntos) . ' archivo' . (count($adjuntos) !== 1 ? 's' : '') . ' adjunto' . (count($adjuntos) !== 1 ? 's' : '')
+            : '';
 
         echo '<div class="alert alert-success d-flex align-items-center gap-2">
                 <i class="fas fa-check-circle fa-lg"></i>
                 <div>
                     <strong>¡Ticket creado exitosamente!</strong><br>
-                    <small>Código: <strong>' . htmlspecialchars($codigo_ticket) . '</strong> — Serás redirigido en un momento...</small>
+                    <small>Código: <strong>' . htmlspecialchars($codigo_ticket) . '</strong>' . $detalle_adjuntos . ' — Serás redirigido en un momento...</small>
                 </div>
               </div>';
-    } else {
-        echo '<div class="alert alert-danger"><i class="fas fa-times-circle me-2"></i>Error al crear el ticket: ' . htmlspecialchars($conexion->error) . '</div>';
+    } catch (Throwable $e) {
+        $conexion->rollback();
+        // Si ya se habían escrito archivos en disco, se borran para no dejar basura huérfana
+        foreach ($archivos_escritos as $ruta) { @unlink($ruta); }
+        echo '<div class="alert alert-danger"><i class="fas fa-times-circle me-2"></i>No se pudo crear el ticket. Inténtalo de nuevo.</div>';
     }
 }
 

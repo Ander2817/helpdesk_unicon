@@ -1,7 +1,7 @@
 <?php
-// CORRECCIÓN en footer2.php — usar constantes en vez de texto hardcodeado
-// Agrega el require al inicio del archivo si no está incluido ya
-if (!defined('NOMBRE_SISTEMA')) require_once '../includes/constants.php';
+// Las constantes viven en config/constants.php (ruta absoluta con __DIR__ para que
+// funcione igual desde admin/, tecnico/, usuario/ o admin/procesos/)
+if (!defined('NOMBRE_SISTEMA')) require_once __DIR__ . '/../includes/constants.php';
 ?>
     <!-- FIN MAIN -->
     <footer class="hd-footer">

@@ -13,12 +13,16 @@ $categorias = $conexion->query("
     WHERE c.estado = 'activo'
     ORDER BY c.nombre ASC
 ");
-$inventario  = $conexion->query("
-    SELECT i.id_inventario, i.codigo_equipo, i.tipo_equipo, i.marca, i.modelo 
+// Equipos activos del departamento del usuario (consulta preparada: el login nunca se pega al SQL)
+$stmt_inv = $conexion->prepare("
+    SELECT i.id_inventario, i.codigo_equipo, i.tipo_equipo, i.marca, i.modelo
     FROM inventario_tecnologico i
     INNER JOIN usuarios u ON i.id_departamento = u.id_departamento
-    WHERE u.usuario_login = '{$_SESSION['usser']}' AND i.estado = 'activo'
+    WHERE u.usuario_login = ? AND i.estado = 'activo'
 ");
+$stmt_inv->bind_param("s", $_SESSION['usser']);
+$stmt_inv->execute();
+$inventario = $stmt_inv->get_result();
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -194,13 +198,15 @@ $inventario  = $conexion->query("
                     </div>
                 </div>
 
+                <?php include __DIR__ . '/../includes/adjuntos_widget.php'; ?>
+
                 <!-- RESULTADO -->
                 <div id="resultado" style="margin-top:8px;"></div>
 
             </form>
         </div>
         <div style="padding:14px 22px;border-top:1px solid var(--borde);display:flex;gap:8px;justify-content:flex-end;background:#fafbfc;border-radius:0 0 8px 8px;">
-            <a href="../dashboard.php" class="hd-btn hd-btn-outline">Cancelar</a>
+            <a href="dashboard.php" class="hd-btn hd-btn-outline">Cancelar</a>
             <button type="submit" form="form-ticket" id="btn-enviar" class="hd-btn hd-btn-naranja">
                 <i class="fas fa-paper-plane"></i> Enviar Ticket
             </button>
@@ -296,13 +302,15 @@ $('#form-ticket').on('submit', function(e) {
     $.ajax({
         url: '../procesos/create_ticket.php',
         type: 'POST',
-        data: $(this).serialize(),
+        data: new FormData(this),      // FormData (no serialize) para que viajen los archivos
+        processData: false,
+        contentType: false,
         success: function(r) {
             resultado.html(r);
             btn.prop('disabled', false).html('<i class="fas fa-paper-plane"></i> Enviar Ticket');
             if (r.includes('alert-success')) {
                 setTimeout(function() {
-                    window.location.href = '../mis_tickets.php';
+                    window.location.href = 'mis_tickets.php';
                 }, 2000);
             }
         },

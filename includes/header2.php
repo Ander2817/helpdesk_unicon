@@ -11,6 +11,24 @@ $rol_id         = (int)$_SESSION['id_rol'];
 $inicial        = strtoupper(substr($usuario_activo, 0, 1));
 $rol_nombre     = match($rol_id) { 3=>'Administrador', 2=>'Técnico TI', 1=>'Usuario', default=>'—' };
 $pagina_actual  = basename($_SERVER['PHP_SELF']);
+
+require_once __DIR__ . '/../includes/constants.php';
+
+// ---- GUARDA DE ROL POR CARPETA ----
+// Cada carpeta del sistema pertenece a un rol. Si alguien entra a una carpeta que no es
+// la suya (por ejemplo un técnico escribiendo admin/dashboard.php en la URL), se le
+// devuelve a su propio panel. Cubre todas las páginas que incluyen este header.
+$rol_de_carpeta   = ['admin' => ROL_ADMIN, 'tecnico' => ROL_TECNICO, 'usuario' => ROL_USUARIO];
+$carpeta_de_rol   = [ROL_ADMIN => 'admin', ROL_TECNICO => 'tecnico', ROL_USUARIO => 'usuario'];
+$ruta_actual      = str_replace('\\', '/', $_SERVER['PHP_SELF']);
+
+foreach ($rol_de_carpeta as $carpeta => $rol_requerido) {
+    if (strpos($ruta_actual, '/' . $carpeta . '/') !== false && $rol_id !== $rol_requerido) {
+        $destino = isset($carpeta_de_rol[$rol_id]) ? $carpeta_de_rol[$rol_id] . '/dashboard.php' : 'index.php';
+        header('Location: ' . URL_BASE . $destino);
+        exit();
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -47,7 +65,7 @@ $pagina_actual  = basename($_SERVER['PHP_SELF']);
         </div>
 
         <?php if ($rol_id >= 2): ?>
-        <a href="tickets.php" class="hd-topbar-icon" title="Tickets">
+        <a href="<?= $rol_id === ROL_ADMIN ? 'tickets.php' : 'tickets_asignados.php' ?>" class="hd-topbar-icon" title="Tickets">
             <i class="fas fa-ticket-alt"></i>
         </a>
         <?php endif; ?>

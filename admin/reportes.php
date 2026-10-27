@@ -136,6 +136,12 @@ include_once '../includes/sidebar.php';
     .hd-tabla-mini td { padding: 7px 8px; border-bottom: 1px solid var(--borde); }
     .hd-tabla-mini tr:last-child td { border-bottom: none; }
     .hd-pill-sla { padding: 2px 9px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; }
+    .hd-exp-label { font-size: 0.68rem; font-weight: 600; color: var(--muted); display: block; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .hd-exp-input {
+        padding: 7px 10px; border: 1.5px solid var(--borde); border-radius: 7px; font-family: 'Poppins', sans-serif;
+        font-size: 0.8rem; color: var(--texto); background: #fff; outline: none;
+    }
+    .hd-exp-input:focus { border-color: var(--naranja); }
 </style>
 
 <main class="hd-main">
@@ -145,6 +151,44 @@ include_once '../includes/sidebar.php';
             <div class="hd-page-title"><i class="fas fa-chart-bar" style="color:var(--naranja);margin-right:6px;"></i> Reportes</div>
             <div class="hd-page-sub">Vista general del desempeño del sistema de tickets</div>
         </div>
+    </div>
+
+    <!-- EXPORTAR -->
+    <div class="hd-card" style="padding:16px 20px;margin-bottom:18px;border-left:4px solid var(--naranja);">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:14px;">
+            <div style="flex:1;min-width:260px;">
+                <h5 class="hd-card-title" style="margin-bottom:4px;"><i class="fas fa-file-export"></i> Exportar reporte</h5>
+                <div style="font-size:0.74rem;color:var(--muted);line-height:1.5;">
+                    <strong>PDF</strong>: informe listo para presentar o imprimir, con indicadores, gráficas y tablas.<br>
+                    <strong>CSV</strong>: el detalle ticket por ticket, para abrir y analizar en Excel.
+                </div>
+            </div>
+            <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+                <div>
+                    <label class="hd-exp-label">Período</label>
+                    <select id="exp-preset" class="hd-exp-input" onchange="aplicarPreset()">
+                        <option value="mes">Este mes</option>
+                        <option value="mes_ant">Mes anterior</option>
+                        <option value="30d">Últimos 30 días</option>
+                        <option value="3m">Últimos 3 meses</option>
+                        <option value="6m" selected>Últimos 6 meses</option>
+                        <option value="anio">Este año</option>
+                        <option value="custom">Personalizado…</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="hd-exp-label">Desde</label>
+                    <input type="date" id="exp-desde" class="hd-exp-input" onchange="document.getElementById('exp-preset').value='custom'">
+                </div>
+                <div>
+                    <label class="hd-exp-label">Hasta</label>
+                    <input type="date" id="exp-hasta" class="hd-exp-input" onchange="document.getElementById('exp-preset').value='custom'">
+                </div>
+                <button type="button" class="hd-btn hd-btn-naranja" onclick="exportar('pdf')"><i class="fas fa-file-pdf"></i> Descargar PDF</button>
+                <button type="button" class="hd-btn hd-btn-outline" onclick="exportar('csv')"><i class="fas fa-file-csv"></i> Descargar CSV</button>
+            </div>
+        </div>
+        <div id="exp-aviso" style="display:none;margin-top:10px;font-size:0.76rem;color:var(--danger);"></div>
     </div>
 
     <!-- STATS RÁPIDAS -->
@@ -243,6 +287,36 @@ include_once '../includes/sidebar.php';
 </main>
 
 <script>
+// ---- Exportar: períodos predefinidos y descarga ----
+function fechaISO(d) {   // yyyy-mm-dd con la hora local (toISOString() la corre un día según la zona horaria)
+    const p = n => String(n).padStart(2, '0');
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+}
+function aplicarPreset() {
+    const v = document.getElementById('exp-preset').value;
+    if (v === 'custom') return;
+    const hoy = new Date();
+    let desde = new Date(hoy), hasta = new Date(hoy);
+    if (v === 'mes')          desde = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+    else if (v === 'mes_ant') { desde = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1); hasta = new Date(hoy.getFullYear(), hoy.getMonth(), 0); }
+    else if (v === '30d')     desde.setDate(hoy.getDate() - 29);
+    else if (v === '3m')      desde = new Date(hoy.getFullYear(), hoy.getMonth() - 2, 1);
+    else if (v === '6m')      desde = new Date(hoy.getFullYear(), hoy.getMonth() - 5, 1);
+    else if (v === 'anio')    desde = new Date(hoy.getFullYear(), 0, 1);
+    document.getElementById('exp-desde').value = fechaISO(desde);
+    document.getElementById('exp-hasta').value = fechaISO(hasta);
+}
+function exportar(tipo) {
+    const desde = document.getElementById('exp-desde').value;
+    const hasta = document.getElementById('exp-hasta').value;
+    const aviso = document.getElementById('exp-aviso');
+    aviso.style.display = 'none';
+    if (!desde || !hasta) { aviso.textContent = 'Elige las dos fechas del período.'; aviso.style.display = 'block'; return; }
+    if (desde > hasta)    { aviso.textContent = 'La fecha "Desde" no puede ser posterior a "Hasta".'; aviso.style.display = 'block'; return; }
+    window.location.href = 'reporte_' + tipo + '.php?desde=' + desde + '&hasta=' + hasta;   // la descarga no cambia de página
+}
+aplicarPreset();
+
 const coloresLista = ['#E87722', '#1a2a4a', '#0284c7', '#16a34a', '#d97706', '#dc2626', '#64748b', '#a855f7'];
 
 new Chart(document.getElementById('chartVolumen'), {

@@ -10,6 +10,8 @@
  */
 
 if (!defined('NOMBRE_SISTEMA')) require_once '../includes/constants.php';
+require_once __DIR__ . '/flujo_tickets.php';
+require_once __DIR__ . '/adjuntos.php';
 
 $id_ticket = (int)($_GET['id'] ?? 0);
 
@@ -25,7 +27,7 @@ $stmt_yo->bind_param("s", $usuario_activo);
 $stmt_yo->execute();
 $fila_yo = $stmt_yo->get_result()->fetch_assoc();
 $stmt_yo->close();
-$id_usuario_actual = $fila_yo['id_usuario'] ?? 0;
+$id_usuario_actual = (int)($fila_yo['id_usuario'] ?? 0);
 
 // Ticket completo con todos sus datos relacionados
 $stmt = $conexion->prepare("
@@ -59,19 +61,25 @@ if (!$ticket) {
 }
 
 // ---- Permisos según rol ----
+$es_solicitante = ($id_usuario_actual > 0 && (int)$ticket['id_usuario_solicitante'] === $id_usuario_actual);
+$es_asignado    = ($id_usuario_actual > 0 && (int)$ticket['id_usuario_asignado'] === $id_usuario_actual);
+$sin_tecnico    = empty($ticket['id_usuario_asignado']);
+$ticket_activo  = !in_array((int)$ticket['id_estado'], [TICKET_RESUELTO, TICKET_CERRADO], true);
+
 $puede_ver = false;
 $puede_gestionar = false; // cambiar estado / marcar solución
-$puede_reasignar = false; // solo admin
+$puede_reasignar = false; // asignar técnico: solo admin
 
 if ($rol_id === ROL_ADMIN) {
     $puede_ver = true;
     $puede_gestionar = true;
     $puede_reasignar = true;
 } elseif ($rol_id === ROL_TECNICO) {
-    $puede_ver = ((int)$ticket['id_usuario_asignado'] === $id_usuario_actual);
-    $puede_gestionar = $puede_ver;
+    // Ve los tickets que le asignaron y los que él mismo creó; solo gestiona los asignados.
+    $puede_ver = ($es_asignado || $es_solicitante);
+    $puede_gestionar = $es_asignado;
 } elseif ($rol_id === ROL_USUARIO) {
-    $puede_ver = ((int)$ticket['id_usuario_solicitante'] === $id_usuario_actual);
+    $puede_ver = $es_solicitante;
 }
 
 if (!$puede_ver) {
@@ -79,6 +87,13 @@ if (!$puede_ver) {
     include_once '../includes/footer2.php';
     exit();
 }
+
+// Archivos adjuntos del ticket
+$stmt_adj = $conexion->prepare("SELECT id_adjunto, nombre_archivo, ruta_archivo, tipo_archivo, fecha_subida FROM adjuntos WHERE id_ticket = ? ORDER BY id_adjunto ASC");
+$stmt_adj->bind_param("i", $id_ticket);
+$stmt_adj->execute();
+$adjuntos_ticket = $stmt_adj->get_result()->fetch_all(MYSQLI_ASSOC);
+$stmt_adj->close();
 
 // Comentarios
 $comentarios = $conexion->prepare("
@@ -104,25 +119,25 @@ $historial->bind_param("i", $id_ticket);
 $historial->execute();
 $historial = $historial->get_result();
 
-// Técnicos activos (para reasignar, solo admin)
+// Técnicos activos con su carga de trabajo actual (solo el admin los necesita, para asignar)
 $tecnicos = null;
-if ($puede_reasignar) {
-    $tecnicos = $conexion->query("SELECT id_usuario, nombres, apellidos FROM usuarios WHERE id_rol = " . ROL_TECNICO . " AND estado = 'activo' ORDER BY nombres ASC");
+if ($puede_reasignar && $ticket_activo) {
+    $tecnicos = $conexion->query("
+        SELECT u.id_usuario, u.nombres, u.apellidos, COUNT(t.id_tickets) AS activos
+        FROM usuarios u
+        LEFT JOIN tickets t ON t.id_usuario_asignado = u.id_usuario
+                           AND t.id_estado IN (" . TICKET_PROCESO . "," . TICKET_PENDIENTE . ")
+        WHERE u.id_rol = " . ROL_TECNICO . " AND u.estado = 'activo'
+        GROUP BY u.id_usuario
+        ORDER BY u.nombres ASC
+    ");
 }
 
-// Transiciones de estado permitidas
-$transiciones_tecnico = [
-    TICKET_PROCESO   => [TICKET_PENDIENTE, TICKET_RESUELTO],
-    TICKET_PENDIENTE => [TICKET_PROCESO, TICKET_RESUELTO],
-    TICKET_RESUELTO  => [],
-];
-$nombres_estado = [
-    TICKET_ABIERTO   => 'Abierto',
-    TICKET_PROCESO   => 'En Proceso',
-    TICKET_PENDIENTE => 'Pendiente',
-    TICKET_RESUELTO  => 'Resuelto',
-    TICKET_CERRADO   => 'Cerrado',
-];
+// Estados a los que se puede pasar desde el actual (misma regla que valida el servidor).
+// Sin técnico asignado no hay nada que gestionar: primero el admin debe asignarlo.
+$opciones_estado = ($puede_gestionar && !$sin_tecnico)
+    ? estados_siguientes((int)$ticket['id_estado'], $rol_id)
+    : [];
 
 $colores_estado    = [1=>'#0284c7', 2=>'#E87722', 3=>'#d97706', 4=>'#16a34a', 5=>'#64748b'];
 $colores_nivel     = [1=>'#0284c7', 2=>'#d97706', 3=>'#E87722', 4=>'#dc2626'];
@@ -185,6 +200,26 @@ $link_volver = match($rol_id) {
     }
     .hd-input:focus { border-color: var(--naranja); box-shadow: 0 0 0 3px rgba(232,119,34,0.1); outline: none; }
     textarea.hd-input { resize: vertical; min-height: 70px; }
+    .hd-adjuntos { margin-top: 16px; }
+    .hd-adj-miniaturas { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
+    .hd-adj-thumb {
+        width: 110px; height: 82px; border-radius: 8px; border: 1px solid var(--borde); overflow: hidden;
+        display: block; background: #f1f5f9; position: relative;
+    }
+    .hd-adj-thumb img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.2s; }
+    .hd-adj-thumb:hover img { transform: scale(1.06); }
+    .hd-adj-fila {
+        display: flex; align-items: center; gap: 10px; padding: 8px 12px; margin-bottom: 6px;
+        border: 1px solid var(--borde); border-radius: 8px; background: #fff; font-size: 0.8rem;
+    }
+    .hd-adj-fila > i { color: var(--naranja); font-size: 1rem; width: 18px; text-align: center; }
+    .hd-adj-fila .nombre { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--texto); font-weight: 500; }
+    .hd-adj-fila .peso { color: var(--muted); font-size: 0.72rem; flex-shrink: 0; }
+    .hd-adj-fila a.descargar {
+        color: var(--muted); border: 1px solid var(--borde); border-radius: 6px; padding: 3px 9px;
+        font-size: 0.72rem; text-decoration: none; flex-shrink: 0;
+    }
+    .hd-adj-fila a.descargar:hover { color: var(--naranja); border-color: var(--naranja); }
 </style>
 
 <main class="hd-main">
@@ -224,6 +259,35 @@ $link_volver = match($rol_id) {
                 </div>
                 <?php endif; ?>
 
+                <?php if ($adjuntos_ticket): ?>
+                <div class="hd-adjuntos">
+                    <div class="hd-label" style="margin-bottom:8px;"><i class="fas fa-paperclip" style="color:var(--naranja);"></i> Archivos adjuntos (<?= count($adjuntos_ticket) ?>)</div>
+
+                    <?php $imagenes = array_filter($adjuntos_ticket, fn($a) => adjunto_es_imagen($a['tipo_archivo'])); ?>
+                    <?php if ($imagenes): ?>
+                    <div class="hd-adj-miniaturas">
+                        <?php foreach ($imagenes as $a): ?>
+                        <a class="hd-adj-thumb" href="../procesos/descargar_adjunto.php?id=<?= (int)$a['id_adjunto'] ?>&ver=1" target="_blank" rel="noopener" title="<?= htmlspecialchars($a['nombre_archivo']) ?>">
+                            <img src="../procesos/descargar_adjunto.php?id=<?= (int)$a['id_adjunto'] ?>&ver=1" alt="<?= htmlspecialchars($a['nombre_archivo']) ?>" loading="lazy">
+                        </a>
+                        <?php endforeach; ?>
+                    </div>
+                    <?php endif; ?>
+
+                    <?php foreach ($adjuntos_ticket as $a):
+                        $ruta_disco = adjuntos_directorio() . '/' . $a['ruta_archivo'];
+                        $peso = is_file($ruta_disco) ? formato_bytes((int)filesize($ruta_disco)) : 'no disponible';
+                    ?>
+                    <div class="hd-adj-fila">
+                        <i class="fas <?= adjunto_icono($a['tipo_archivo']) ?>"></i>
+                        <span class="nombre" title="<?= htmlspecialchars($a['nombre_archivo']) ?>"><?= htmlspecialchars($a['nombre_archivo']) ?></span>
+                        <span class="peso"><?= $peso ?></span>
+                        <a class="descargar" href="../procesos/descargar_adjunto.php?id=<?= (int)$a['id_adjunto'] ?>"><i class="fas fa-download"></i> Descargar</a>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+                <?php endif; ?>
+
                 <?php if ($ticket['solucion']): ?>
                 <div style="margin-top:16px;">
                     <div class="hd-label" style="color:var(--success);">✓ Solución aplicada</div>
@@ -245,40 +309,53 @@ $link_volver = match($rol_id) {
         </div>
     </div>
 
-    <?php if ($puede_gestionar && !in_array((int)$ticket['id_estado'], [TICKET_RESUELTO, TICKET_CERRADO])): ?>
-    <div class="hd-card" style="padding:18px 22px;margin-bottom:18px;">
-        <h5 class="hd-card-title" style="margin-bottom:12px;"><i class="fas fa-tasks"></i> Gestionar Ticket</h5>
-        <form id="form-estado-ticket">
+    <?php if ($puede_reasignar && $ticket_activo): ?>
+    <!-- ASIGNACIÓN (solo administrador): es quien decide qué técnico atiende cada ticket -->
+    <div class="hd-card" style="padding:18px 22px;margin-bottom:18px;<?= $sin_tecnico ? 'border-left:4px solid var(--naranja);' : '' ?>">
+        <h5 class="hd-card-title" style="margin-bottom:6px;"><i class="fas fa-user-cog"></i> Asignación</h5>
+        <?php if ($sin_tecnico): ?>
+        <div style="font-size:0.78rem;color:var(--muted);margin-bottom:12px;">
+            Este ticket aún no tiene técnico. Al asignarlo pasará automáticamente a <strong>En Proceso</strong>.
+        </div>
+        <?php else: ?>
+        <div style="font-size:0.78rem;color:var(--muted);margin-bottom:12px;">
+            Técnico actual: <strong><?= htmlspecialchars($ticket['asig_nombres'] . ' ' . $ticket['asig_apellidos']) ?></strong>. Puedes reasignarlo a otro técnico.
+        </div>
+        <?php endif; ?>
+        <form id="form-asignar">
             <input type="hidden" name="id_ticket" value="<?= $id_ticket ?>">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:end;">
+            <div style="display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end;">
                 <div>
-                    <label class="hd-label">Cambiar estado a</label>
-                    <select name="nuevo_estado" id="nuevo-estado" class="hd-input" required onchange="toggleSolucion()">
-                        <option value="" disabled selected>Selecciona un estado</option>
-                        <?php
-                        $opciones = ($rol_id === ROL_ADMIN)
-                            ? [TICKET_ABIERTO, TICKET_PROCESO, TICKET_PENDIENTE, TICKET_RESUELTO, TICKET_CERRADO]
-                            : ($transiciones_tecnico[(int)$ticket['id_estado']] ?? []);
-                        foreach ($opciones as $op):
-                            if ($op == $ticket['id_estado']) continue;
-                        ?>
-                        <option value="<?= $op ?>"><?= $nombres_estado[$op] ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <?php if ($puede_reasignar): ?>
-                <div>
-                    <label class="hd-label">Reasignar a técnico</label>
-                    <select id="reasignar-tecnico" class="hd-input">
-                        <option value="">— Mantener asignación actual —</option>
+                    <label class="hd-label">Técnico</label>
+                    <select name="id_usuario_asignado" class="hd-input" required>
+                        <option value="" disabled <?= $sin_tecnico ? 'selected' : '' ?>>Selecciona un técnico</option>
                         <?php while ($t = $tecnicos->fetch_assoc()): ?>
-                        <option value="<?= $t['id_usuario'] ?>" <?= $t['id_usuario']==$ticket['id_usuario_asignado']?'selected':'' ?>>
-                            <?= htmlspecialchars($t['nombres'] . ' ' . $t['apellidos']) ?>
+                        <option value="<?= $t['id_usuario'] ?>" <?= (int)$t['id_usuario'] === (int)$ticket['id_usuario_asignado'] ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($t['nombres'] . ' ' . $t['apellidos']) ?> — <?= (int)$t['activos'] ?> activo<?= (int)$t['activos'] !== 1 ? 's' : '' ?>
                         </option>
                         <?php endwhile; ?>
                     </select>
                 </div>
-                <?php endif; ?>
+                <button type="submit" class="hd-btn hd-btn-naranja"><i class="fas fa-user-check"></i> <?= $sin_tecnico ? 'Asignar' : 'Reasignar' ?></button>
+            </div>
+            <div id="resultado-asignar" style="margin-top:10px;"></div>
+        </form>
+    </div>
+    <?php endif; ?>
+
+    <?php if ($puede_gestionar && !empty($opciones_estado)): ?>
+    <div class="hd-card" style="padding:18px 22px;margin-bottom:18px;">
+        <h5 class="hd-card-title" style="margin-bottom:12px;"><i class="fas fa-tasks"></i> Gestionar Ticket</h5>
+        <form id="form-estado-ticket">
+            <input type="hidden" name="id_ticket" value="<?= $id_ticket ?>">
+            <div>
+                <label class="hd-label">Cambiar estado a</label>
+                <select name="nuevo_estado" id="nuevo-estado" class="hd-input" required onchange="toggleSolucion()">
+                    <option value="" disabled selected>Selecciona un estado</option>
+                    <?php foreach ($opciones_estado as $op): ?>
+                    <option value="<?= $op ?>"><?= htmlspecialchars(nombre_estado($op)) ?></option>
+                    <?php endforeach; ?>
+                </select>
             </div>
 
             <div id="wrap-solucion" style="display:none;margin-top:12px;">
@@ -356,17 +433,34 @@ function toggleSolucion() {
 
 $('#form-estado-ticket').on('submit', function(e) {
     e.preventDefault();
-    const data = $(this).serialize() +
-        (document.getElementById('reasignar-tecnico') ? '&id_usuario_asignado=' + $('#reasignar-tecnico').val() : '');
     const resultado = $('#resultado-estado');
 
     $.ajax({
         url: '../procesos/cambiar_estado_ticket.php',
         type: 'POST',
-        data: data,
+        data: $(this).serialize(),
         success: function(r) {
             resultado.html(r);
             if (r.includes('alert-success')) setTimeout(() => location.reload(), 1200);
+        },
+        error: function() {
+            resultado.html('<div class="alert alert-danger">Error de conexión.</div>');
+        }
+    });
+});
+
+// Asignar / reasignar técnico (solo existe el formulario para el administrador)
+$('#form-asignar').on('submit', function(e) {
+    e.preventDefault();
+    const resultado = $('#resultado-asignar');
+
+    $.ajax({
+        url: '../procesos/asignar_ticket.php',
+        type: 'POST',
+        data: $(this).serialize(),
+        success: function(r) {
+            resultado.html(r);
+            if (r.includes('alert-success')) setTimeout(() => location.reload(), 1000);
         },
         error: function() {
             resultado.html('<div class="alert alert-danger">Error de conexión.</div>');
