@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once '../includes/constants.php';
+require_once '../includes/duracion.php';
 if (!isset($conexion)) require_once __DIR__ . '/../config/conexion.php';
 
 $colores_prioridad = [1=>'gris', 2=>'amarillo', 3=>'naranja', 4=>'rojo'];
@@ -37,13 +38,13 @@ $resueltos_stmt->execute();
 $resueltos_n = $resueltos_stmt->get_result()->fetch_assoc()['c'];
 
 $tprom_stmt = $conexion->prepare("
-    SELECT ROUND(AVG(TIMESTAMPDIFF(HOUR, fecha_creacion, fecha_cierre)), 1) h
+    SELECT ROUND(AVG(TIMESTAMPDIFF(MINUTE, fecha_creacion, fecha_cierre)) / 60, 2) h
     FROM tickets WHERE id_usuario_asignado = ? AND fecha_cierre IS NOT NULL
 ");
 $tprom_stmt->bind_param("i", $id_tecnico);
 $tprom_stmt->execute();
 $tprom_row = $tprom_stmt->get_result()->fetch_assoc();
-$tiempo_prom = $tprom_row['h'] !== null ? $tprom_row['h'] . 'h' : '—';
+$tiempo_prom = hd_duracion($tprom_row['h']);
 
 // ---- ASIGNADOS A MÍ (activos, top 4) ----
 $asignados_stmt = $conexion->prepare("

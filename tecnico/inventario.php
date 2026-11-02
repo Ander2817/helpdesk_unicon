@@ -11,7 +11,7 @@ require_once '../includes/permisos.php';
 if (!rol_tiene_permiso($conexion, ROL_TECNICO, 'inventario.ver')) { header('Location: dashboard.php'); exit(); }
 
 $inventario = $conexion->query("
-    SELECT i.codigo_equipo, i.tipo_equipo, i.marca, i.modelo, i.serial, i.estado, i.ubicacion,
+    SELECT i.id_inventario, i.codigo_equipo, i.tipo_equipo, i.marca, i.modelo, i.serial, i.estado, i.ubicacion,
            d.nombre AS departamento_nombre
     FROM inventario_tecnologico i
     LEFT JOIN departamentos d ON i.id_departamento = d.id_departamento

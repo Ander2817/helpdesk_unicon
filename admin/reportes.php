@@ -4,6 +4,7 @@ if (!isset($_SESSION['usser']) || (int)$_SESSION['id_rol'] !== 3) {
     header("Location: ../index.php"); exit();
 }
 require_once '../includes/constants.php';
+require_once '../includes/duracion.php';
 include '../config/conexion.php';
 
 // =====================================================================
@@ -47,7 +48,7 @@ $tecnicos_perf = $conexion->query("
     SELECT u.id_usuario, u.nombres, u.apellidos,
            COUNT(CASE WHEN t.id_estado IN (" . TICKET_RESUELTO . "," . TICKET_CERRADO . ") THEN 1 END) AS resueltos,
            COUNT(CASE WHEN t.id_estado NOT IN (" . TICKET_RESUELTO . "," . TICKET_CERRADO . ") AND t.id_tickets IS NOT NULL THEN 1 END) AS activos,
-           ROUND(AVG(CASE WHEN t.fecha_cierre IS NOT NULL THEN TIMESTAMPDIFF(HOUR, t.fecha_creacion, t.fecha_cierre) END), 1) AS horas_promedio
+           ROUND(AVG(CASE WHEN t.fecha_cierre IS NOT NULL THEN TIMESTAMPDIFF(MINUTE, t.fecha_creacion, t.fecha_cierre) END) / 60, 2) AS horas_promedio
     FROM usuarios u
     LEFT JOIN tickets t ON t.id_usuario_asignado = u.id_usuario
     WHERE u.id_rol = " . ROL_TECNICO . " AND u.estado = 'activo'
@@ -240,7 +241,7 @@ include_once '../includes/sidebar.php';
                             <td style="font-weight:600;color:var(--azul);"><?= htmlspecialchars($tp['nombres'] . ' ' . $tp['apellidos']) ?></td>
                             <td><?= $tp['resueltos'] ?></td>
                             <td><?= $tp['activos'] ?></td>
-                            <td><?= $tp['horas_promedio'] !== null ? $tp['horas_promedio'] . 'h' : '—' ?></td>
+                            <td><?= hd_duracion($tp['horas_promedio']) ?></td>
                         </tr>
                         <?php endwhile; ?>
                     </tbody>

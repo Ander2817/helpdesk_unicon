@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once '../includes/constants.php';
+require_once '../includes/duracion.php';
 if (!isset($conexion)) require_once __DIR__ . '/../config/conexion.php';
 
 $colores_prioridad = [1=>'gris', 2=>'amarillo', 3=>'naranja', 4=>'rojo'];
@@ -43,10 +44,10 @@ $recientes = $conexion->query("
 $total_tickets = $conexion->query("SELECT COUNT(*) c FROM tickets")->fetch_assoc()['c'];
 
 $tiempo_prom_row = $conexion->query("
-    SELECT ROUND(AVG(TIMESTAMPDIFF(HOUR, fecha_creacion, fecha_cierre)), 1) h
+    SELECT ROUND(AVG(TIMESTAMPDIFF(MINUTE, fecha_creacion, fecha_cierre)) / 60, 2) h
     FROM tickets WHERE fecha_cierre IS NOT NULL
 ")->fetch_assoc();
-$tiempo_prom = $tiempo_prom_row['h'] !== null ? $tiempo_prom_row['h'] . 'h' : '—';
+$tiempo_prom = hd_duracion($tiempo_prom_row['h']);
 
 $sla_row = $conexion->query("
     SELECT COUNT(*) total, SUM(CASE WHEN TIMESTAMPDIFF(MINUTE, t.fecha_creacion, t.fecha_cierre) <= p.tiempo_respuesta_objetivo THEN 1 ELSE 0 END) dentro

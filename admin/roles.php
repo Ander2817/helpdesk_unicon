@@ -38,7 +38,7 @@ include_once '../includes/sidebar.php';
     }
     .hd-input:focus { border-color: var(--naranja); box-shadow: 0 0 0 3px rgba(232,119,34,0.1); outline: none; }
     textarea.hd-input { resize: vertical; min-height: 70px; }
-    .hd-input:disabled { background: #f1f5f9; color: var(--muted); }
+    .hd-input:disabled, .hd-input[readonly] { background: #f1f5f9; color: var(--muted); cursor: not-allowed; }
     .hd-info-fija {
         display: flex; gap: 10px; align-items: flex-start; background: #f8fafc;
         border: 1px solid var(--borde); border-radius: 8px; padding: 12px 14px;
@@ -60,7 +60,7 @@ include_once '../includes/sidebar.php';
     <div class="hd-info-fija">
         <i class="fas fa-lock" style="color:var(--muted);margin-top:2px;"></i>
         <div>
-            Los 3 roles base no se pueden crear ni eliminar. Aquí puedes cambiar su nombre, descripción y nivel, y
+            Los 3 roles base no se pueden crear ni eliminar. Aquí puedes cambiar su nombre y descripción, y
             <strong>activar o quitar permisos</strong> al Técnico (ver inventario, crear tickets para otros, tomar tickets sin asignar,
             cerrar tickets). El Administrador siempre tiene todos. Los cambios aplican de inmediato a todos los usuarios de ese rol.
         </div>
@@ -138,12 +138,9 @@ include_once '../includes/sidebar.php';
                         <textarea name="descripcion" id="rol-descripcion" class="hd-input" maxlength="255" placeholder="Opcional"></textarea>
                     </div>
 
-                    <div class="mb-2">
-                        <label class="hd-label">Nivel de acceso <span style="color:var(--danger);">*</span></label>
-                        <input type="number" name="nivel_acceso" id="rol-nivel" class="hd-input" min="1" max="9" required>
-                        <div style="font-size:0.7rem;color:var(--muted);margin-top:4px;">
-                            Define la jerarquía entre roles: debe ser único (1 a 9) y el Administrador siempre debe tener el nivel más alto.
-                        </div>
+                    <div class="mb-3">
+                        <label class="hd-label">Nivel de acceso</label>
+                        <input type="number" name="nivel_acceso" id="rol-nivel" class="hd-input" readonly>
                     </div>
 
                     <div id="bloque-permisos" class="mb-2" style="display:none;">

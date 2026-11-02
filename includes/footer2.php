@@ -16,6 +16,7 @@ if (!defined('NOMBRE_SISTEMA')) require_once __DIR__ . '/../includes/constants.p
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="<?= URL_BASE ?>assets/js/hd-paginar.js"></script>
+<script src="<?= URL_BASE ?>assets/js/ia_widget.js" data-rol="<?= (int)($_SESSION['id_rol'] ?? 0) ?>" data-url="<?= URL_BASE ?>procesos/ia_asistente.php" defer></script>
 <script>
 function toggleSub(id) {
     const el = document.getElementById(id);

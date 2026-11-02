@@ -70,10 +70,16 @@ $query = $conexion->query("
             </div>
             <div class="hd-page-sub">Historial de todas tus solicitudes de soporte</div>
         </div>
+
+        <div style="display: flex; gap: 12px; align-items: center;">
+        <a href="dashboard.php" class="hd-btn hd-btn-sm" style="background-color: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; text-decoration: none;">
+            <i class="fas fa-arrow-left"></i> Volver al panel
+        </a>
         <a href="ticket_nuevo.php" class="hd-btn hd-btn-naranja hd-btn-sm">
             <i class="fas fa-plus"></i> Nuevo Ticket
         </a>
     </div>
+</div>
 
     <!-- FILTROS -->
     <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">

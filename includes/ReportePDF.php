@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/duracion.php';
 /**
  * includes/ReportePDF.php
  * Reporte de gestión en PDF (A4) con la identidad de Unicon HelpDesk.
@@ -201,7 +202,7 @@ class ReportePDF extends FPDF
         $this->kpi(15,                 $y, $w, (string)$datos['creados'],   'Tickets creados',  self::AZUL);
         $this->kpi(15 + ($w + $sep),   $y, $w, (string)$datos['resueltos'], 'Tickets resueltos', self::VERDE);
         $this->kpi(15 + ($w + $sep)*2, $y, $w, $sla !== null ? $sla . '%' : '—', 'SLA cumplido', $this->colorPorcentaje($sla));
-        $this->kpi(15 + ($w + $sep)*3, $y, $w, $datos['tiempo_prom_horas'] !== null ? $this->num($datos['tiempo_prom_horas']) . ' h' : '—', 'Tiempo prom. resolución', self::NARANJA);
+        $this->kpi(15 + ($w + $sep)*3, $y, $w, $datos['tiempo_prom_horas'] !== null ? hd_duracion($datos['tiempo_prom_horas']) : '—', 'Tiempo prom. resolución', self::NARANJA);
         // Fila 2
         $y2 = $y + 23;
         $this->kpi(15,                 $y2, $w, (string)$datos['criticos_creados'], 'Críticos creados', self::ROJO);
@@ -292,7 +293,7 @@ class ReportePDF extends FPDF
             $this->SetFont('Helvetica', '', 9);
             $this->color([30, 41, 59]);
             $this->celda($cols[1][1], 7, (string)$t['resueltos'], 0, 0, 'C', $fondo);
-            $this->celda($cols[2][1], 7, $t['horas_prom'] !== null ? $this->num($t['horas_prom']) . ' h' : '—', 0, 0, 'C', $fondo);
+            $this->celda($cols[2][1], 7, $t['horas_prom'] !== null ? hd_duracion($t['horas_prom']) : '—', 0, 0, 'C', $fondo);
             $this->color($this->colorPorcentaje($t['sla_pct']));
             $this->SetFont('Helvetica', 'B', 9);
             $this->celda($cols[3][1], 7, $t['sla_pct'] !== null ? $t['sla_pct'] . '%' : '—', 0, 0, 'C', $fondo);
