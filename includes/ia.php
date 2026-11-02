@@ -12,7 +12,7 @@ function ia_config(): array {
     static $cfg = null;
     if ($cfg !== null) return $cfg;
     $def = ['activo' => false, 'proveedor' => 'gemini', 'api_key' => '', 'modelo' => '', 'timeout' => 25, 'ca_bundle' => '',
-            'limite_por_minuto' => 6, 'limite_por_dia' => 60];
+            'limite_por_minuto' => 6, 'limite_por_dia' => 60, 'base_url' => '', 'modelo_respaldo' => ''];
     $f = __DIR__ . '/../config/ia.php';
     $cfg = $def;
     if (is_file($f)) { $x = include $f; if (is_array($x)) $cfg = array_merge($def, $x); }
@@ -22,7 +22,7 @@ function ia_config(): array {
 function ia_disponible(): bool {
     $c = ia_config();
     $k = trim((string)$c['api_key']);
-    return !empty($c['activo']) && $k !== '' && stripos($k, 'PEGA_AQUI') === false && in_array($c['proveedor'], ['gemini', 'openai'], true);
+    return !empty($c['activo']) && $k !== '' && stripos($k, 'PEGA_AQUI') === false && in_array($c['proveedor'], ['gemini', 'openai', 'groq'], true);
 }
 
 // ---------------------------------------------------------------- limpieza de texto (privacidad)
@@ -129,23 +129,25 @@ function ia_registrar($c, int $uid, int $rol, string $accion, ?int $ticket, stri
 function ia_http_json(string $url, array $cabeceras, array $cuerpo, int $timeout, string $ca): array {
     if (!function_exists('curl_init')) return [0, null, 'La extensión cURL de PHP no está activa (extension=curl en php.ini).'];
     $ch = curl_init($url);
-    $op = [CURLOPT_POST => true, CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => $timeout, CURLOPT_CONNECTTIMEOUT => 8,
-           CURLOPT_HTTPHEADER => array_merge(['Content-Type: application/json'], $cabeceras),
+    $op = [CURLOPT_POST => true, CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => $timeout, CURLOPT_CONNECTTIMEOUT => 8, CURLOPT_USERAGENT => 'HelpDeskUnicon/1.0 (PHP)', CURLOPT_ENCODING => '',
+           CURLOPT_HTTPHEADER => array_merge(['Content-Type: application/json', 'Accept: application/json'], $cabeceras),
            CURLOPT_POSTFIELDS => json_encode($cuerpo, JSON_UNESCAPED_UNICODE)];
     if ($ca !== '') $op[CURLOPT_CAINFO] = $ca;
     curl_setopt_array($ch, $op);
     $r = curl_exec($ch); $http = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE); $err = curl_error($ch);
     curl_close($ch);
     if ($r === false) return [0, null, $err];
-    return [$http, json_decode($r, true), ''];
+    $j = json_decode($r, true);
+    if (!is_array($j)) $j = ['error' => ['message' => trim(strip_tags(mb_substr((string)$r, 0, 200)))]];   // respuesta no JSON (p. ej. bloqueo del proveedor): mostrar el texto
+    return [$http, $j, ''];
 }
 /** Pregunta al modelo. $hist = [['r'=>'u'|'a','t'=>texto], ...]. Devuelve ['ok'=>bool,'texto'=>string,'error'=>string]. */
-function ia_llamar(string $system, array $hist, string $mensaje): array {
+function ia_llamar_modelo(string $system, array $hist, string $mensaje, string $forzado = ''): array {
     $cfg = ia_config();
     if (!ia_disponible()) return ['ok' => false, 'texto' => '', 'error' => 'IA no configurada'];
     $to = max(5, (int)$cfg['timeout']); $ca = (string)$cfg['ca_bundle'];
     if ($cfg['proveedor'] === 'gemini') {
-        $modelo = $cfg['modelo'] ?: 'gemini-3.5-flash-lite';
+        $modelo = $forzado ?: ($cfg['modelo'] ?: 'gemini-3.5-flash-lite');
         $cont = [];
         foreach ($hist as $h) $cont[] = ['role' => $h['r'] === 'a' ? 'model' : 'user', 'parts' => [['text' => $h['t']]]];
         $cont[] = ['role' => 'user', 'parts' => [['text' => $mensaje]]];
@@ -158,11 +160,13 @@ function ia_llamar(string $system, array $hist, string $mensaje): array {
         $msg = $j['error']['message'] ?? '';
         if (($j['candidates'][0]['finishReason'] ?? '') === 'MAX_TOKENS' && $txt !== '') $txt .= "\n\n[Respuesta cortada por longitud: pide «continúa» o haz la pregunta más concreta.]";
     } else {
-        $modelo = $cfg['modelo'] ?: 'gpt-4o-mini';
+        $modelo = $forzado ?: $cfg['modelo'] ?: ($cfg['proveedor'] === 'groq' ? 'llama-3.3-70b-versatile' : 'gpt-4o-mini');
+        // groq y openai usan el mismo formato; solo cambia la dirección base (o la que pongas en 'base_url')
+        $base = rtrim((string)($cfg['base_url'] ?? '') ?: ($cfg['proveedor'] === 'groq' ? 'https://api.groq.com/openai/v1' : 'https://api.openai.com/v1'), '/');
         $m = [['role' => 'system', 'content' => $system]];
         foreach ($hist as $h) $m[] = ['role' => $h['r'] === 'a' ? 'assistant' : 'user', 'content' => $h['t']];
         $m[] = ['role' => 'user', 'content' => $mensaje];
-        [$http, $j, $err] = ia_http_json('https://api.openai.com/v1/chat/completions', ['Authorization: Bearer ' . $cfg['api_key']],
+        [$http, $j, $err] = ia_http_json($base . '/chat/completions', ['Authorization: Bearer ' . $cfg['api_key']],
             ['model' => $modelo, 'messages' => $m, 'temperature' => 0.3, 'max_tokens' => 1800], $to, $ca);
         $txt = (string)($j['choices'][0]['message']['content'] ?? '');
         $msg = $j['error']['message'] ?? '';
@@ -172,6 +176,21 @@ function ia_llamar(string $system, array $hist, string $mensaje): array {
     $txt = trim($txt);
     if ($txt === '') return ['ok' => false, 'texto' => '', 'error' => 'la API no devolvió texto'];
     return ['ok' => true, 'texto' => $txt, 'error' => ''];
+}
+
+/** Llama al modelo y, si está saturado (503/429/500), reintenta una vez y luego prueba el modelo de respaldo (config 'modelo_respaldo'). */
+function ia_llamar(string $system, array $hist, string $mensaje): array {
+    $cfg = ia_config();
+    $r = ia_llamar_modelo($system, $hist, $mensaje);
+    $saturado = fn($r) => !$r['ok'] && preg_match('/API respondi. (429|500|502|503|504)/u', $r['error']);
+    if ($saturado($r)) { sleep(2); $r = ia_llamar_modelo($system, $hist, $mensaje); }
+    $resp = trim((string)($cfg['modelo_respaldo'] ?? ''));
+    if ($saturado($r) && $resp !== '' && $resp !== ($cfg['modelo'] ?? '')) {
+        $r2 = ia_llamar_modelo($system, $hist, $mensaje, $resp);
+        if ($r2['ok']) return $r2;
+        $r['error'] .= ' | respaldo ' . $resp . ': ' . $r2['error'];
+    }
+    return $r;
 }
 
 // ---------------------------------------------------------------- instrucciones por rol
