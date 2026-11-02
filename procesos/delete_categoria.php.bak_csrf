@@ -1,0 +1,47 @@
+<?php
+// procesos/delete_categoria.php — elimina una categoría (solo Administrador).
+// Si tiene tickets asociados NO se borra (se perdería el historial): se sugiere desactivarla.
+session_start();
+require_once '../includes/functions.php';
+include '../config/conexion.php';
+require_once __DIR__ . '/../includes/bitacora.php';
+
+header('Content-Type: application/json; charset=utf-8');
+
+function resp(bool $ok, string $msg, int $http = 200): never {
+    http_response_code($http);
+    echo json_encode(['ok' => $ok, 'msg' => $msg], JSON_UNESCAPED_UNICODE);
+    exit();
+}
+
+if (!isset($_SESSION['usser']) || (int)($_SESSION['id_rol'] ?? 0) !== 3) resp(false, 'No autorizado.', 403);
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') resp(false, 'Método no permitido.', 405);
+
+$id = (int)($_POST['id_categoria'] ?? 0);
+if ($id <= 0) resp(false, 'ID inválido.', 400);
+
+$antes = bitacora_fila($conexion, 'categoria_incidencias', 'id_categoria', $id);
+if (!$antes) resp(false, 'La categoría no existe.');
+
+try {
+    $q = $conexion->prepare("SELECT COUNT(*) FROM tickets WHERE id_categoria = ?");
+    $q->bind_param("i", $id); $q->execute();
+    $n = (int)$q->get_result()->fetch_row()[0];
+    $q->close();
+    if ($n > 0) {
+        resp(false, "Tiene $n ticket" . ($n !== 1 ? 's' : '') . " asociado" . ($n !== 1 ? 's' : '') . ". No se puede eliminar; desactívala para que no aparezca al crear tickets nuevos.");
+    }
+
+    $d = $conexion->prepare("DELETE FROM categoria_incidencias WHERE id_categoria = ?");
+    $d->bind_param("i", $id); $d->execute();
+    $borrada = $d->affected_rows > 0;
+    $d->close();
+    if (!$borrada) resp(false, 'No se eliminó ningún registro.');
+
+    registrar_bitacora($conexion, 'DELETE', 'categoria_incidencias', $id, 'Eliminó la categoría ' . $antes['nombre'], $antes, null);
+    resp(true, 'La categoría "' . $antes['nombre'] . '" fue eliminada.');
+} catch (mysqli_sql_exception $e) {
+    if ($e->getCode() === 1451) resp(false, 'Tiene registros asociados. Desactívala en lugar de eliminarla.');
+    error_log('[delete_categoria] ' . $e->getMessage());
+    resp(false, 'Error al eliminar la categoría.', 500);
+}

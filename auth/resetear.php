@@ -22,7 +22,8 @@ $stmt = $conexion->prepare("
 ");
 
 // el on hace que se conecte ambas tablas exactamente donde el id usuario sea igual en ambas ablas, con el fin de hacer que se asocie en lugar de mostrar por ejemplo usuario 5
-$stmt->bind_param("s", $token);
+$token_hash = hash('sha256', $token);   // en la BD el token se guarda con hash
+$stmt->bind_param("s", $token_hash);
 $stmt->execute();
 $datos = $stmt->get_result()->fetch_assoc();
 $stmt->close();

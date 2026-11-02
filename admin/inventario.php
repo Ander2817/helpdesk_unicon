@@ -123,6 +123,9 @@ include_once '../includes/sidebar.php';
                                 ], JSON_HEX_APOS | JSON_HEX_QUOT) ?>)'>
                                 <i class="fas fa-pen"></i>
                             </button>
+                            <a class="hd-icon-btn" href="inventario_historial.php?id=<?= (int)$eq['id_inventario'] ?>" title="Historial de mantenimiento" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;">
+                                <i class="fas fa-tools"></i>
+                            </a>
                         </td>
                     </tr>
                     <?php endwhile; ?>
@@ -266,6 +269,17 @@ function filtrar(estado, btn) {
         fila.style.display = (estado === 'todos' || fila.dataset.estado === estado) ? '' : 'none';
     });
 }
+</script>
+<script>
+// Viene del buscador de la barra superior: ?q=CODIGO → deja visible solo ese equipo
+(function () {
+    const q = (new URLSearchParams(location.search).get('q') || '').toLowerCase();
+    if (!q) return;
+    const filas = Array.from(document.querySelectorAll('#tbody-inventario tr[data-estado]'));
+    const exactas = filas.filter(f => f.cells[0].textContent.trim().toLowerCase() === q);   // código exacto (PC-01 no arrastra PC-010)
+    const visibles = exactas.length ? exactas : filas.filter(f => f.textContent.toLowerCase().includes(q));
+    filas.forEach(f => { f.style.display = visibles.includes(f) ? '' : 'none'; });
+})();
 </script>
 
 <?php include_once '../includes/footer2.php'; ?>

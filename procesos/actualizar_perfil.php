@@ -1,7 +1,9 @@
 <?php
 session_start();
+require_once __DIR__ . '/../includes/csrf.php'; csrf_verificar(); /* csrf */
 require_once '../includes/functions.php';
 include '../config/conexion.php';
+require_once __DIR__ . '/../includes/bitacora.php';
 
 header('Content-Type: text/html; charset=utf-8');
 
@@ -32,10 +34,13 @@ if ($telefono !== null && !preg_match('/^[0-9+\-()\s]{6,20}$/', $telefono)) {
 }
 
 try {
+    $antes = bitacora_fila($conexion, 'usuarios', 'id_usuario', (int)($_SESSION['id_usuario'] ?? 0));
     // Solo se actualiza la fila del usuario en sesión; el rol, departamento y login no se tocan.
     $stmt = $conexion->prepare("UPDATE usuarios SET nombres = ?, apellidos = ?, correo = ?, telefono = ? WHERE usuario_login = ?");
     $stmt->bind_param("sssss", $nombres, $apellidos, $correo, $telefono, $_SESSION['usser']);
     $stmt->execute();
+    registrar_bitacora($conexion, 'UPDATE', 'usuarios', $_SESSION['id_usuario'] ?? null, 'Actualizó su propio perfil', $antes,
+        ['nombres'=>$nombres, 'apellidos'=>$apellidos, 'correo'=>$correo, 'telefono'=>$telefono]);
     echo "<div class='alert alert-success'><i class='fas fa-check-circle me-2'></i>Perfil actualizado correctamente.</div>";
 } catch (mysqli_sql_exception $e) {
     if ($e->getCode() === 1062) {

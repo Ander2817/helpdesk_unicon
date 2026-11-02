@@ -1,10 +1,80 @@
 <?php
 // procesos/tomar_ticket.php
-// DESACTIVADO: los técnicos ya no pueden asignarse tickets a sí mismos.
-// La asignación la hace únicamente el administrador (ver procesos/asignar_ticket.php).
-// Este archivo se conserva como bloqueo para que ninguna petición antigua o manual
-// (marcador, botón en caché, POST directo) pueda saltarse la regla.
-http_response_code(403);
+// Un técnico se asigna un ticket SIN ASIGNAR. Solo funciona si el administrador activó el permiso
+// «Tomar tickets sin asignar» para el rol Técnico (Admin > Roles). Si está apagado, responde 403.
+session_start();
+require_once __DIR__ . '/../includes/csrf.php'; csrf_verificar(); /* csrf */
+require_once '../includes/constants.php';
+require_once '../includes/flujo_tickets.php';
+require_once '../includes/permisos.php';
+include '../config/conexion.php';
+require_once __DIR__ . '/../includes/bitacora.php';
+require_once __DIR__ . '/../includes/notificaciones.php';
+
 header('Content-Type: text/html; charset=utf-8');
-echo "<div class='alert alert-danger'><i class='fas fa-times-circle me-2'></i>Los tickets los asigna el administrador. Un técnico no puede tomar tickets por su cuenta.</div>";
-exit();
+
+function msg_tomar(string $tipo, string $texto, int $http = 200): never {
+    http_response_code($http);
+    echo "<div class='alert alert-$tipo'>$texto</div>";
+    exit();
+}
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') msg_tomar('danger', 'Método no permitido.', 405);
+if (!isset($_SESSION['usser']) || (int)($_SESSION['id_rol'] ?? 0) !== ROL_TECNICO) msg_tomar('danger', 'Solo un técnico puede tomar tickets.', 403);
+if (!rol_tiene_permiso($conexion, ROL_TECNICO, 'tickets.tomar')) {
+    msg_tomar('danger', 'El administrador no habilitó que los técnicos tomen tickets por su cuenta. Los asigna él.', 403);
+}
+
+$id_ticket = (int)($_POST['id_ticket'] ?? 0);
+if ($id_ticket <= 0) msg_tomar('warning', 'Ticket no válido.');
+
+// Técnico en sesión (debe estar activo)
+$q = $conexion->prepare("SELECT id_usuario, CONCAT(nombres, ' ', apellidos) AS nombre FROM usuarios WHERE usuario_login = ? AND id_rol = ? AND estado = 'activo'");
+$rol_t = ROL_TECNICO;
+$q->bind_param("si", $_SESSION['usser'], $rol_t); $q->execute();
+$yo = $q->get_result()->fetch_assoc(); $q->close();
+if (!$yo) msg_tomar('danger', 'Tu cuenta no está activa.', 403);
+$id_tecnico = (int)$yo['id_usuario'];
+
+$conexion->begin_transaction();
+try {
+    // Bloquea la fila: si dos técnicos pulsan a la vez, solo uno se queda con el ticket
+    $q = $conexion->prepare("SELECT id_estado, id_usuario_asignado FROM tickets WHERE id_tickets = ? FOR UPDATE");
+    $q->bind_param("i", $id_ticket); $q->execute();
+    $t = $q->get_result()->fetch_assoc(); $q->close();
+
+    if (!$t) { $conexion->rollback(); msg_tomar('danger', 'El ticket no existe.'); }
+    if (!empty($t['id_usuario_asignado'])) { $conexion->rollback(); msg_tomar('warning', 'Este ticket ya fue tomado por otra persona.'); }
+    if (in_array((int)$t['id_estado'], [TICKET_RESUELTO, TICKET_CERRADO], true)) { $conexion->rollback(); msg_tomar('warning', 'Este ticket ya está resuelto o cerrado.'); }
+
+    $era_abierto  = ((int)$t['id_estado'] === TICKET_ABIERTO);
+    $nuevo_estado = $era_abierto ? TICKET_PROCESO : (int)$t['id_estado'];
+
+    $q = $conexion->prepare("UPDATE tickets SET id_usuario_asignado = ?, id_estado = ? WHERE id_tickets = ? AND id_usuario_asignado IS NULL");
+    $q->bind_param("iii", $id_tecnico, $nuevo_estado, $id_ticket); $q->execute();
+    $filas = $q->affected_rows; $q->close();
+    if ($filas !== 1) { $conexion->rollback(); msg_tomar('warning', 'Este ticket ya fue tomado por otra persona.'); }
+
+    // Historial del ticket (igual que hace asignar_ticket.php)
+    $h = $conexion->prepare("INSERT INTO historial_ticket (id_ticket, id_usuario, campo_modificado, valor_anterior, valor_nuevo) VALUES (?, ?, ?, ?, ?)");
+    $campo = 'Técnico asignado'; $de = 'Sin asignar'; $a = $yo['nombre'] . ' (lo tomó él mismo)';
+    $h->bind_param("iisss", $id_ticket, $id_tecnico, $campo, $de, $a); $h->execute();
+    if ($era_abierto) {
+        $campo = 'Estado'; $de = nombre_estado(TICKET_ABIERTO); $a = nombre_estado(TICKET_PROCESO);
+        $h->bind_param("iisss", $id_ticket, $id_tecnico, $campo, $de, $a); $h->execute();
+    }
+    $h->close();
+
+    $conexion->commit();
+} catch (mysqli_sql_exception $e) {
+    $conexion->rollback();
+    error_log('[tomar_ticket] ' . $e->getMessage());
+    msg_tomar('danger', 'No se pudo tomar el ticket. Intenta de nuevo.', 500);
+}
+
+registrar_bitacora($conexion, 'UPDATE', 'tickets', $id_ticket, "Tomó el ticket #$id_ticket (sin asignar → {$yo['nombre']})",
+    ['id_usuario_asignado' => null, 'id_estado' => $t['id_estado']],
+    ['id_usuario_asignado' => $id_tecnico, 'id_estado' => $nuevo_estado]);
+noti_evento_tomado($conexion, $id_ticket, $id_tecnico);
+
+echo "<div class='alert alert-success'><i class='fas fa-check-circle me-2'></i>Ticket tomado. Ya aparece en «Asignados a Mí».</div>";

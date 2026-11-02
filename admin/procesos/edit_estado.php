@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once __DIR__ . '/../../includes/csrf.php'; csrf_verificar(); /* csrf */
 require_once '../includes/functions.php';
 include '../config/conexion.php';
 

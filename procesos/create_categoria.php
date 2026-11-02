@@ -1,7 +1,9 @@
 <?php
 session_start();
+require_once __DIR__ . '/../includes/csrf.php'; csrf_verificar(); /* csrf */
 require_once '../includes/functions.php';
 include '../config/conexion.php';
+require_once __DIR__ . '/../includes/bitacora.php';
 
 header('Content-Type: text/html; charset=utf-8');
 
@@ -25,6 +27,8 @@ try {
     $stmt = $conexion->prepare("INSERT INTO categoria_incidencias (nombre, descripcion, id_prioridad_default, estado) VALUES (?, ?, ?, 'activo')");
     $stmt->bind_param("ssi", $nombre, $descripcion, $id_prioridad_default);
     $stmt->execute();
+    registrar_bitacora($conexion, 'INSERT', 'categoria_incidencias', $conexion->insert_id, "Creó la categoría $nombre", null,
+        ['nombre'=>$nombre, 'descripcion'=>$descripcion, 'id_prioridad_default'=>$id_prioridad_default]);
     echo "<div class='alert alert-success'><i class='fas fa-check-circle me-2'></i>Categoría creada correctamente.</div>";
 } catch (mysqli_sql_exception $e) {
     if ($e->getCode() === 1062) {

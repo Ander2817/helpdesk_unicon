@@ -43,19 +43,7 @@ if ($row = $result->fetch_assoc()):
     </div>
 </form>
 
-<script>
-$("#form-editar").on("submit", function(e) {
-    e.preventDefault();
-    $.ajax({
-        url: 'actualizar_departamento.php',
-        type: 'POST',
-        data: $(this).serialize(),
-        success: function(htmlResponse) {
-            $("#resultado-editar").html(htmlResponse);
-        }
-    });
-});
-</script>
+
 <?php 
 endif;
 $stmt->close();

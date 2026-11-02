@@ -1,0 +1,40 @@
+<?php
+// procesos/calificar_ticket.php — el solicitante califica la atención (1 a 5) de un ticket resuelto o cerrado. Una sola vez.
+session_start();
+require_once __DIR__ . '/../includes/csrf.php'; csrf_verificar(); /* csrf */
+require_once '../includes/constants.php';
+require_once '../includes/functions.php';
+include '../config/conexion.php';
+require_once '../includes/bitacora.php';
+require_once '../includes/notificaciones.php';
+header('Content-Type: text/html; charset=utf-8');
+
+function res_cal(string $tipo, string $m): never { echo "<div class='alert alert-$tipo'>$m</div>"; exit(); }
+
+if (!isset($_SESSION['usser'])) { http_response_code(403); res_cal('danger', 'No autorizado.'); }
+$yo = noti_id_actual($conexion);
+$id_ticket = (int)($_POST['id_ticket'] ?? 0);
+$puntos    = (int)($_POST['puntuacion'] ?? 0);
+$coment    = trim((string)($_POST['comentario'] ?? ''));
+if ($id_ticket <= 0 || $puntos < 1 || $puntos > 5) res_cal('warning', 'Elige entre 1 y 5 estrellas.');
+if (mb_strlen($coment) > 500) res_cal('warning', 'El comentario no puede superar 500 caracteres.');
+
+$q = $conexion->prepare("SELECT id_usuario_solicitante, id_estado FROM tickets WHERE id_tickets = ?");
+$q->bind_param("i", $id_ticket); $q->execute();
+$t = $q->get_result()->fetch_assoc(); $q->close();
+if (!$t) res_cal('danger', 'El ticket no existe.');
+if ((int)$t['id_usuario_solicitante'] !== $yo) { http_response_code(403); res_cal('danger', 'Solo quien creó el ticket puede calificarlo.'); }
+if (!in_array((int)$t['id_estado'], [TICKET_RESUELTO, TICKET_CERRADO], true)) res_cal('warning', 'Solo se puede calificar cuando el ticket está resuelto o cerrado.');
+
+$coment = $coment === '' ? null : $coment;
+try {
+    $i = $conexion->prepare("INSERT INTO encuestas_ticket (id_ticket, id_usuario, puntuacion, comentario) VALUES (?, ?, ?, ?)");
+    $i->bind_param("iiis", $id_ticket, $yo, $puntos, $coment); $i->execute(); $i->close();
+} catch (mysqli_sql_exception $e) {
+    if ($e->getCode() === 1062) res_cal('info', 'Este ticket ya fue calificado. ¡Gracias!');
+    error_log('[calificar] ' . $e->getMessage());
+    res_cal('danger', 'No se pudo guardar la calificación.');
+}
+registrar_bitacora($conexion, 'INSERT', 'encuestas_ticket', $id_ticket, "Calificó la atención del ticket #$id_ticket con $puntos/5", null, ['puntuacion' => $puntos, 'comentario' => $coment]);
+noti_evento_calificado($conexion, $id_ticket, $yo, $puntos);
+res_cal('success', "<i class='fas fa-check-circle me-2'></i>¡Gracias por tu calificación!");

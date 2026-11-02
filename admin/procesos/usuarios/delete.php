@@ -1,10 +1,12 @@
 <?php
 session_start();
+require_once __DIR__ . '/../../../includes/csrf.php'; csrf_verificar(); /* csrf */
 if (!isset($_SESSION['usser']) || $_SESSION['id_rol'] != 3) {
     die('Acceso denegado de forma segura.');
 }
 
 include('../../../config/conexion.php');
+require_once __DIR__ . '/../../../includes/bitacora.php';
 
 if (isset($_POST['id'])) {
     $id_usuario = (int)$_POST['id'];
@@ -14,6 +16,7 @@ if (isset($_POST['id'])) {
         die('No puedes eliminar tu propia cuenta de administrador.');
     }
 
+    $antes = bitacora_fila($conexion, 'usuarios', 'id_usuario', $id_usuario);
     $stmt = $conexion->prepare("DELETE FROM usuarios WHERE id_usuario = ?");
     
     if ($stmt === false) {
@@ -23,6 +26,7 @@ if (isset($_POST['id'])) {
     $stmt->bind_param("i", $id_usuario);
 
     if ($stmt->execute()) {
+        registrar_bitacora($conexion, 'DELETE', 'usuarios', $id_usuario, 'Eliminó al usuario ' . ($antes['usuario_login'] ?? "#$id_usuario"), $antes, null);
         echo 'success';
     } else {
         // Código de error 1451: Restricción de clave foránea (Tiene tickets, inventario, etc.)

@@ -4,6 +4,7 @@ if (!isset($_SESSION['usser']) || (int)$_SESSION['id_rol'] !== 3) {
     header("Location: ../index.php"); exit();
 }
 require_once '../includes/functions.php';
+require_once '../includes/permisos.php';
 include '../config/conexion.php';
 
 $roles = $conexion->query("SELECT id_rol, nombre, descripcion, nivel_acceso FROM roles ORDER BY nivel_acceso ASC");
@@ -59,9 +60,9 @@ include_once '../includes/sidebar.php';
     <div class="hd-info-fija">
         <i class="fas fa-lock" style="color:var(--muted);margin-top:2px;"></i>
         <div>
-            El sistema tiene la lógica de permisos (menús, páginas visibles, acciones permitidas) programada directamente
-            para estos 3 roles y sus IDs exactos. Por eso no se pueden crear ni eliminar roles desde aquí — solo ajustar
-            el nombre visible, la descripción o el nivel de acceso.
+            Los 3 roles base no se pueden crear ni eliminar. Aquí puedes cambiar su nombre, descripción y nivel, y
+            <strong>activar o quitar permisos</strong> al Técnico (ver inventario, crear tickets para otros, tomar tickets sin asignar,
+            cerrar tickets). El Administrador siempre tiene todos. Los cambios aplican de inmediato a todos los usuarios de ese rol.
         </div>
     </div>
 
@@ -99,7 +100,9 @@ include_once '../includes/sidebar.php';
                                     "id" => $r["id_rol"],
                                     "nombre" => $r["nombre"],
                                     "descripcion" => $r["descripcion"],
-                                    "nivel_acceso" => $r["nivel_acceso"]
+                                    "nivel_acceso" => $r["nivel_acceso"],
+                                    "permisos" => permisos_de_rol($conexion, (int)$r["id_rol"]),
+                                    "delegable" => array_keys(array_filter(permisos_catalogo(), fn($p) => in_array((int)$r["id_rol"], $p["roles"], true)))
                                 ], JSON_HEX_APOS | JSON_HEX_QUOT) ?>)'>
                                 <i class="fas fa-pen"></i>
                             </button>
@@ -139,8 +142,19 @@ include_once '../includes/sidebar.php';
                         <label class="hd-label">Nivel de acceso <span style="color:var(--danger);">*</span></label>
                         <input type="number" name="nivel_acceso" id="rol-nivel" class="hd-input" min="1" max="9" required>
                         <div style="font-size:0.7rem;color:var(--muted);margin-top:4px;">
-                            Solo informativo por ahora — el sistema usa el ID del rol, no este número, para decidir permisos.
+                            Define la jerarquía entre roles: debe ser único (1 a 9) y el Administrador siempre debe tener el nivel más alto.
                         </div>
+                    </div>
+
+                    <div id="bloque-permisos" class="mb-2" style="display:none;">
+                        <label class="hd-label">Permisos de este rol</label>
+                        <div id="lista-permisos"></div>
+                    </div>
+                    <div id="aviso-admin" class="mb-2" style="display:none;font-size:.75rem;color:var(--muted);">
+                        <i class="fas fa-shield-alt"></i> El Administrador siempre tiene todos los permisos; no se pueden quitar.
+                    </div>
+                    <div id="aviso-usuario" class="mb-2" style="display:none;font-size:.75rem;color:var(--muted);">
+                        Este rol solo puede crear y seguir sus propios tickets; no tiene permisos adicionales configurables.
                     </div>
 
                     <div id="resultado-rol"></div>
@@ -163,6 +177,28 @@ function modoEditar(r) {
     $('#rol-descripcion').val(r.descripcion || '');
     $('#rol-nivel').val(r.nivel_acceso);
     $('#resultado-rol').html('');
+
+    // Permisos
+    const CAT = <?= json_encode(array_map(fn($p) => ['nombre' => $p['nombre'], 'descripcion' => $p['descripcion']], permisos_catalogo()), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) ?>;
+    const caja = document.getElementById('lista-permisos');
+    caja.textContent = '';
+    $('#bloque-permisos, #aviso-admin, #aviso-usuario').hide();
+    if (r.id === 3) { $('#aviso-admin').show(); }
+    else if (!r.delegable.length) { $('#aviso-usuario').show(); }
+    else {
+        r.delegable.forEach(function (k) {
+            const lb = document.createElement('label');
+            lb.style.cssText = 'display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border:1.5px solid var(--borde);border-radius:7px;margin-bottom:6px;cursor:pointer;';
+            const cb = document.createElement('input');
+            cb.type = 'checkbox'; cb.name = 'permisos[]'; cb.value = k; cb.checked = r.permisos.includes(k);
+            cb.style.cssText = 'margin-top:3px;accent-color:var(--naranja);';
+            const tx = document.createElement('div');
+            const n = document.createElement('div'); n.style.cssText = 'font-size:.8rem;font-weight:600;color:var(--azul);'; n.textContent = CAT[k].nombre;
+            const d = document.createElement('div'); d.style.cssText = 'font-size:.7rem;color:var(--muted);'; d.textContent = CAT[k].descripcion;
+            tx.append(n, d); lb.append(cb, tx); caja.appendChild(lb);
+        });
+        $('#bloque-permisos').show();
+    }
     new bootstrap.Modal(document.getElementById('modalRol')).show();
 }
 

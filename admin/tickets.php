@@ -16,7 +16,10 @@ $mapa_estado_slug = [
     'cerrado'   => TICKET_CERRADO,
 ];
 $estado_slug = $_GET['estado'] ?? '';
-$filtro_estado_id = $mapa_estado_slug[$estado_slug] ?? null;
+// Acepta el slug del sidebar (?estado=abierto) o el ID de cualquier estado de la BD (?estado=3)
+$filtro_estado_id = $mapa_estado_slug[$estado_slug] ?? (ctype_digit($estado_slug) ? (int)$estado_slug : null);
+// Botones de filtro: TODOS los estados que existen en la tabla estados_ticket
+$estados_filtro = $conexion->query("SELECT id_estado_ticket, nombre FROM estados_ticket ORDER BY id_estado_ticket")->fetch_all(MYSQLI_ASSOC);
 $filtro_sin_asignar = ($estado_slug === 'sin_asignar'); // tickets activos que todavía no tienen técnico
 
 $sql = "
@@ -109,11 +112,9 @@ include_once '../includes/sidebar.php';
     <div class="hd-filtros">
         <a href="tickets.php" class="hd-filtro-btn <?= $estado_slug === '' ? 'activo' : '' ?>">Todos</a>
         <a href="tickets.php?estado=sin_asignar" class="hd-filtro-btn <?= $filtro_sin_asignar ? 'activo' : '' ?>"><i class="fas fa-user-clock" style="margin-right:5px;"></i>Sin asignar</a>
-        <a href="tickets.php?estado=abierto" class="hd-filtro-btn <?= $estado_slug === 'abierto' ? 'activo' : '' ?>">Abiertos</a>
-        <a href="tickets.php?estado=proceso" class="hd-filtro-btn <?= $estado_slug === 'proceso' ? 'activo' : '' ?>">En Proceso</a>
-        <a href="tickets.php?estado=pendiente" class="hd-filtro-btn <?= $estado_slug === 'pendiente' ? 'activo' : '' ?>">Pendientes</a>
-        <a href="tickets.php?estado=resuelto" class="hd-filtro-btn <?= $estado_slug === 'resuelto' ? 'activo' : '' ?>">Resueltos</a>
-        <a href="tickets.php?estado=cerrado" class="hd-filtro-btn <?= $estado_slug === 'cerrado' ? 'activo' : '' ?>">Cerrados</a>
+        <?php foreach ($estados_filtro as $ef): ?>
+        <a href="tickets.php?estado=<?= (int)$ef['id_estado_ticket'] ?>" class="hd-filtro-btn <?= $filtro_estado_id === (int)$ef['id_estado_ticket'] ? 'activo' : '' ?>"><?= htmlspecialchars($ef['nombre']) ?></a>
+        <?php endforeach; ?>
     </div>
 
     <div class="hd-card">

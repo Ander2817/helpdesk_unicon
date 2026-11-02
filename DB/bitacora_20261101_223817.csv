@@ -1,0 +1,127 @@
+﻿ID;Fecha;Usuario;Acción;Tabla;"ID registro";Descripción;IP;"Datos anteriores";"Datos nuevos"
+126;"2026-11-01 22:37:49";admin;LOGIN;usuarios;1;"Inició sesión: admin";::1;;
+125;"2026-11-01 22:29:28";admin;LOGIN;usuarios;1;"Inició sesión: admin";::1;;
+124;"2026-11-01 22:26:45";sistema;LOGIN;usuarios;1;"Cuenta bloqueada 60 s por intentos fallidos: admin";::1;;
+123;"2026-11-01 22:19:41";admin;LOGOUT;usuarios;1;"Cerró sesión: admin";::1;;
+122;"2026-11-01 22:19:28";admin;INSERT;inventario_tecnologico;8;"Registró el equipo PC-CONT-002";::1;;"{""codigo_equipo"":""PC-CONT-002"",""tipo_equipo"":""PC de escritorio"",""marca"":""HP"",""modelo"":""ProBook 640 g2"",""serial"":""Desconocido"",""estado"":""activo"",""ubicacion"":""Piso 2, oficina de TI"",""id_departamento"":1}"
+121;"2026-11-01 22:18:50";admin;LOGIN;usuarios;1;"Inició sesión: admin";::1;;
+120;"2026-11-01 21:27:06";admin;INSERT;usuarios;17;"Creó al usuario juanci";::1;;"{""nombres"":""Juan"",""apellidos"":""Alvarado"",""correo"":""juan_unicon@gmail.com"",""usuario_login"":""juanci"",""id_rol"":1,""id_departamento"":1,""estado"":""activo""}"
+119;"2026-11-01 21:25:57";admin;LOGIN;usuarios;1;"Inició sesión: admin";::1;;
+118;"2026-11-01 11:52:49";Andersito;LOGOUT;usuarios;16;"Cerró sesión: Andersito";::1;;
+117;"2026-11-01 11:52:45";Andersito;LOGIN;usuarios;16;"Inició sesión: andersito";::1;;
+116;"2026-11-01 11:52:27";sistema;UPDATE;usuarios;16;"Restableció su contraseña mediante enlace de recuperación";::1;;
+115;"2026-11-01 11:49:29";sistema;RECUPERAR;usuarios;16;"Solicitud de restablecimiento de contraseña: Andersito";::1;;
+114;"2026-11-01 11:46:57";sistema;RECUPERAR;usuarios;16;"Solicitud de restablecimiento de contraseña: Andersito";::1;;
+113;"2026-11-01 11:46:45";sistema;INSERT;usuarios;16;"Nuevo registro de usuario: Andersito (auto-registro)";::1;;
+112;"2026-11-01 11:45:40";sistema;RECUPERAR;usuarios;3;"Solicitud de restablecimiento de contraseña: usuario";::1;;
+111;"2026-11-01 11:37:57";sistema;RECUPERAR;usuarios;2;"Solicitud de restablecimiento de contraseña: tecnico";::1;;
+110;"2026-11-01 11:34:01";sistema;LOGIN;usuarios;1;"Cuenta bloqueada 15 min por intentos fallidos: admin";::1;;
+109;"2026-11-01 11:33:29";admin;LOGOUT;usuarios;1;"Cerró sesión: admin";::1;;
+108;"2026-11-01 11:29:12";admin;DELETE;departamentos;7;"Eliminó el departamento Tecnología de la Información 2";::1;"{""id_departamento"":7,""nombre"":""Tecnología de la Información 2"",""descripcion"":""jol"",""estado"":""activo""}";
+107;"2026-11-01 11:29:04";admin;INSERT;departamentos;7;"Creó el departamento Tecnología de la Información 2";::1;;"{""nombre"":""Tecnología de la Información 2"",""descripcion"":""jol"",""estado"":""activo""}"
+106;"2026-11-01 11:28:07";admin;LOGIN;usuarios;1;"Inició sesión: admin";::1;;
+105;"2026-11-01 10:07:06";admin;LOGIN;usuarios;1;"Inició sesión: admin";::1;;
+104;"2026-11-01 10:07:02";admin;LOGOUT;usuarios;1;"Cerró sesión: admin";::1;;
+103;"2026-11-01 10:04:57";admin;INSERT;kb_articulos;3;"Creó el artículo de ayuda «prueba 2»";::1;;"{""titulo"":""prueba 2"",""publicado"":1}"
+102;"2026-11-01 10:01:50";admin;UPDATE;usuarios;3;"Editó al usuario usuario";::1;"{""id_usuario"":3,""nombres"":""Usuario"",""apellidos"":""Externo"",""correo"":""usuario@unicon.com"",""usuario_login"":""usuario"",""contraseña"":""[OCULTO]"",""telefono"":""2"",""id_departamento"":1,""id_rol"":1,""estado"":""activo""}";"{""nombres"":""Usuario"",""apellidos"":""Externo"",""correo"":""usuario@unicon.com"",""usuario_login"":""usuario"",""telefono"":""22"",""id_departamento"":1,""id_rol"":1,""estado"":""activo""}"
+101;"2026-11-01 10:01:43";admin;LOGIN;usuarios;1;"Inició sesión: admin";::1;;
+100;"2026-11-01 10:01:39";admin;LOGOUT;usuarios;1;"Cerró sesión: admin";::1;;
+99;"2026-11-01 09:58:55";admin;DELETE;usuarios;7;"Eliminó al usuario leandroar";::1;"{""id_usuario"":7,""nombres"":""Leandro"",""apellidos"":""Monterrey"",""correo"":""leandroargenis@gmail.com"",""usuario_login"":""leandroar"",""contraseña"":""[OCULTO]"",""telefono"":""12"",""id_departamento"":1,""id_rol"":1,""estado"":""activo""}";
+98;"2026-11-01 09:58:04";admin;LOGIN;usuarios;1;"Inició sesión: admin";::1;;
+97;"2026-11-01 09:58:00";admin;LOGOUT;usuarios;1;"Cerró sesión: admin";::1;;
+96;"2026-11-01 09:57:19";admin;LOGIN;usuarios;1;"Inició sesión: admin";::1;;
+95;"2026-11-01 09:57:14";admin;LOGOUT;usuarios;1;"Cerró sesión: admin";::1;;
+94;"2026-11-01 09:45:08";admin;INSERT;kb_articulos;2;"Creó el artículo de ayuda «";::1;;"{""titulo"":""prbando"",""publicado"":1}"
+93;"2026-11-01 09:43:04";admin;LOGIN;usuarios;1;"Inició sesión: admin";::1;;
+92;"2026-11-01 09:41:09";usuario;LOGOUT;usuarios;3;"Cerró sesión: usuario";::1;;
+91;"2026-11-01 09:40:58";usuario;LOGIN;usuarios;3;"Inició sesión: usuario";::1;;
+90;"2026-11-01 09:40:53";admin;LOGOUT;usuarios;1;"Cerró sesión: admin";::1;;
+89;"2026-11-01 09:39:44";admin;INSERT;kb_articulos;1;"Creó el artículo de ayuda «";::1;;"{""titulo"":""Guía rápida para la solución de problemas de red y Wi-Fi"",""publicado"":1}"
+88;"2026-11-01 09:38:01";admin;LOGIN;usuarios;1;"Inició sesión: admin";::1;;
+87;"2026-11-01 09:30:33";admin;LOGOUT;usuarios;1;"Cerró sesión: admin";::1;;
+86;"2026-11-01 09:28:25";admin;UPDATE;categoria_incidencias;5;"Cambió el estado de la categoría Otro";::1;"{""id_categoria"":5,""nombre"":""Otro"",""descripcion"":""Cualquier otra solicitud no clasificada"",""id_prioridad_default"":1,""estado"":""inactivo""}";"{""id_categoria"":5,""nombre"":""Otro"",""descripcion"":""Cualquier otra solicitud no clasificada"",""id_prioridad_default"":1,""estado"":""activo""}"
+85;"2026-11-01 09:28:22";admin;UPDATE;categoria_incidencias;5;"Cambió el estado de la categoría Otro";::1;"{""id_categoria"":5,""nombre"":""Otro"",""descripcion"":""Cualquier otra solicitud no clasificada"",""id_prioridad_default"":1,""estado"":""activo""}";"{""id_categoria"":5,""nombre"":""Otro"",""descripcion"":""Cualquier otra solicitud no clasificada"",""id_prioridad_default"":1,""estado"":""inactivo""}"
+84;"2026-11-01 09:28:13";admin;UPDATE;roles;2;"Editó el rol Tecnico";::1;"{""id_rol"":2,""nombre"":""Tecnico"",""descripcion"":""Gestión y resolución de tickets"",""nivel_acceso"":2,""permisos"":[""inventario.ver"",""kb.editar"",""tickets.crear_para_otros"",""tickets.tomar""]}";"{""nombre"":""Tecnico"",""descripcion"":""Gestión y resolución de tickets"",""nivel_acceso"":2,""permisos"":[""inventario.ver"",""tickets.crear_para_otros"",""tickets.tomar"",""inventario.mantenimiento"",""kb.editar""]}"
+83;"2026-11-01 09:28:09";admin;UPDATE;roles;2;"Editó el rol Tecnico";::1;"{""id_rol"":2,""nombre"":""Tecnico"",""descripcion"":""Gestión y resolución de tickets"",""nivel_acceso"":2,""permisos"":[""inventario.mantenimiento"",""inventario.ver"",""kb.editar"",""tickets.crear_para_otros"",""tickets.tomar""]}";"{""nombre"":""Tecnico"",""descripcion"":""Gestión y resolución de tickets"",""nivel_acceso"":2,""permisos"":[""inventario.ver"",""tickets.crear_para_otros"",""tickets.tomar"",""kb.editar""]}"
+82;"2026-11-01 09:27:21";admin;INSERT;tickets;30;"Creó el ticket TK-2026-0006";::1;;"{""codigo_ticket"":""TK-2026-0006"",""asunto"":""asd"",""id_categoria"":3,""id_prioridad"":3,""id_usuario_solicitante"":1,""creado_por"":1,""id_departamento"":1,""id_inventario"":null,""adjuntos"":0}"
+81;"2026-11-01 09:26:10";admin;LOGIN;usuarios;1;"Inició sesión: admin";::1;;
+80;"2026-11-01 09:20:40";admin;INSERT;inventario_tecnologico;7;"Registró el equipo PC-CONT-001";::1;;"{""codigo_equipo"":""PC-CONT-001"",""tipo_equipo"":""PC de escritorio"",""marca"":""Dell"",""modelo"":""OptiPlex 3090"",""serial"":""SN987654321"",""estado"":""activo"",""ubicacion"":""Piso 2, oficina de Contabilidad"",""id_departamento"":3}"
+79;"2026-11-01 09:18:54";admin;LOGIN;usuarios;1;"Inició sesión: admin";::1;;
+78;"2026-11-01 09:18:48";admin;LOGOUT;usuarios;1;"Cerró sesión: admin";::1;;
+77;"2026-11-01 09:17:49";admin;LOGIN;usuarios;1;"Inició sesión: admin";::1;;
+76;"2026-11-01 09:17:45";admin;LOGOUT;usuarios;1;"Cerró sesión: admin";::1;;
+75;"2026-11-01 09:17:18";admin;INSERT;comentarios;58;"Comentó en el ticket #27 (con 1 archivo(s))";::1;;"{""id_ticket"":27,""comentario"":""as"",""adjuntos"":1}"
+74;"2026-11-01 09:16:06";admin;LOGIN;usuarios;1;"Inició sesión: admin";::1;;
+73;"2026-11-01 09:15:51";admin;LOGOUT;usuarios;1;"Cerró sesión: admin";::1;;
+72;"2026-11-01 09:13:56";admin;LOGIN;usuarios;1;"Inició sesión: admin";::1;;
+71;"2026-11-01 09:13:52";admin;LOGOUT;usuarios;1;"Cerró sesión: admin";::1;;
+70;"2026-11-01 09:05:09";admin;LOGIN;usuarios;1;"Inició sesión: admin";::1;;
+69;"2026-11-01 09:04:19";admin;LOGOUT;usuarios;1;"Cerró sesión: admin";::1;;
+68;"2026-11-01 09:03:58";admin;LOGIN;usuarios;1;"Inició sesión: admin";::1;;
+67;"2026-11-01 08:48:50";admin;LOGOUT;usuarios;1;"Cerró sesión: admin";::1;;
+66;"2026-11-01 08:47:44";admin;BACKUP;;;"Creó el respaldo respaldo_20261101_134744.sql (15 tablas, 130 filas)";::1;;
+65;"2026-11-01 08:47:14";admin;LOGIN;usuarios;1;"Inició sesión: admin";::1;;
+64;"2026-10-31 11:52:28";tecnico;LOGOUT;usuarios;2;"Cerró sesión: tecnico";127.0.0.1;;
+63;"2026-10-31 11:52:24";tecnico;UPDATE;tickets;29;"Tomó el ticket #29 (sin asignar → Tecnico Informatica)";127.0.0.1;"{""id_usuario_asignado"":null,""id_estado"":1}";"{""id_usuario_asignado"":2,""id_estado"":2}"
+62;"2026-10-31 11:52:09";tecnico;LOGIN;usuarios;2;"Inició sesión: tecnico";127.0.0.1;;
+61;"2026-10-31 11:52:03";admin;LOGOUT;usuarios;1;"Cerró sesión: admin";127.0.0.1;;
+60;"2026-10-31 11:52:01";admin;UPDATE;roles;2;"Editó el rol Tecnico";127.0.0.1;"{""id_rol"":2,""nombre"":""Tecnico"",""descripcion"":""Gestión y resolución de tickets"",""nivel_acceso"":2,""permisos"":[""inventario.ver"",""tickets.crear_para_otros""]}";"{""nombre"":""Tecnico"",""descripcion"":""Gestión y resolución de tickets"",""nivel_acceso"":2,""permisos"":[""inventario.ver"",""tickets.crear_para_otros"",""tickets.tomar""]}"
+59;"2026-10-31 11:51:47";admin;LOGIN;usuarios;1;"Inició sesión: admin";127.0.0.1;;
+58;"2026-10-31 11:51:07";tecnico;LOGOUT;usuarios;2;"Cerró sesión: tecnico";127.0.0.1;;
+57;"2026-10-31 11:50:35";tecnico;LOGIN;usuarios;2;"Inició sesión: tecnico";127.0.0.1;;
+56;"2026-10-31 11:50:30";tecnico;LOGIN;usuarios;2;"Inició sesión: tecnico";::1;;
+55;"2026-10-31 11:50:25";admin;LOGOUT;usuarios;1;"Cerró sesión: admin";::1;;
+54;"2026-10-31 11:50:20";admin;INSERT;tickets;29;"Creó el ticket TK-2026-0005";::1;;"{""codigo_ticket"":""TK-2026-0005"",""asunto"":""No pernde la pc"",""id_categoria"":3,""id_prioridad"":3,""id_usuario_solicitante"":1,""creado_por"":1,""id_departamento"":1,""id_inventario"":null,""adjuntos"":0}"
+53;"2026-10-31 11:49:09";admin;LOGIN;usuarios;1;"Inició sesión: admin";::1;;
+52;"2026-10-31 06:56:45";admin;UPDATE;roles;2;"Editó el rol Tecnico";::1;"{""id_rol"":2,""nombre"":""Tecnico"",""descripcion"":""Gestión y resolución de tickets"",""nivel_acceso"":2,""permisos"":[""inventario.ver"",""tickets.crear_para_otros"",""tickets.tomar""]}";"{""nombre"":""Tecnico"",""descripcion"":""Gestión y resolución de tickets"",""nivel_acceso"":2,""permisos"":[""inventario.ver"",""tickets.crear_para_otros""]}"
+51;"2026-10-31 06:54:57";admin;LOGIN;usuarios;1;"Inició sesión: admin";::1;;
+50;"2026-10-31 06:54:53";tecnico;LOGOUT;usuarios;2;"Cerró sesión: tecnico";::1;;
+49;"2026-10-31 06:54:34";tecnico;UPDATE;tickets;26;"Tomó el ticket #26 (sin asignar → Tecnico Informatica)";::1;"{""id_usuario_asignado"":null,""id_estado"":1}";"{""id_usuario_asignado"":2,""id_estado"":2}"
+48;"2026-10-31 06:53:04";tecnico;LOGIN;usuarios;2;"Inició sesión: tecnico";::1;;
+47;"2026-10-31 06:52:53";admin;LOGOUT;usuarios;1;"Cerró sesión: admin";::1;;
+46;"2026-10-31 06:52:50";admin;UPDATE;roles;2;"Editó el rol Tecnico";::1;"{""id_rol"":2,""nombre"":""Tecnico"",""descripcion"":""Gestión y resolución de tickets"",""nivel_acceso"":2,""permisos"":[""tickets.crear_para_otros""]}";"{""nombre"":""Tecnico"",""descripcion"":""Gestión y resolución de tickets"",""nivel_acceso"":2,""permisos"":[""inventario.ver"",""tickets.crear_para_otros"",""tickets.tomar""]}"
+45;"2026-10-31 06:50:59";admin;UPDATE;tickets;28;"Cambió el estado del ticket #28: Resuelto → Cerrado";::1;"{""estado"":""Resuelto""}";"{""estado"":""Cerrado"",""solucion"":null}"
+44;"2026-10-31 06:50:45";admin;LOGIN;usuarios;1;"Inició sesión: admin";::1;;
+43;"2026-10-31 06:50:41";tecnico;LOGOUT;usuarios;2;"Cerró sesión: tecnico";::1;;
+42;"2026-10-31 06:50:33";tecnico;UPDATE;tickets;28;"Cambió el estado del ticket #28: En Proceso → Resuelto";::1;"{""estado"":""En Proceso""}";"{""estado"":""Resuelto"",""solucion"":""Intentando""}"
+41;"2026-10-31 06:50:14";tecnico;UPDATE;tickets;28;"Cambió el estado del ticket #28: Pendiente → En Proceso";::1;"{""estado"":""Pendiente""}";"{""estado"":""En Proceso"",""solucion"":null}"
+40;"2026-10-31 06:49:59";tecnico;LOGIN;usuarios;2;"Inició sesión: tecnico";::1;;
+39;"2026-10-31 06:49:52";usuario;LOGOUT;usuarios;3;"Cerró sesión: usuario";::1;;
+38;"2026-10-31 06:49:49";usuario;INSERT;comentarios;57;"Comentó en el ticket #28";::1;;"{""id_ticket"":28,""comentario"":""Gracias""}"
+37;"2026-10-31 06:49:37";usuario;LOGIN;usuarios;3;"Inició sesión: usuario";::1;;
+36;"2026-10-31 06:49:30";tecnico;LOGOUT;usuarios;2;"Cerró sesión: tecnico";::1;;
+35;"2026-10-31 06:49:28";tecnico;INSERT;comentarios;56;"Comentó en el ticket #28";::1;;"{""id_ticket"":28,""comentario"":""Sirven""}"
+34;"2026-10-31 06:49:12";tecnico;LOGIN;usuarios;2;"Inició sesión: tecnico";::1;;
+33;"2026-10-31 06:49:07";admin;LOGOUT;usuarios;1;"Cerró sesión: admin";::1;;
+32;"2026-10-31 06:49:01";admin;UPDATE;tickets;28;"Asignó el ticket #28 a Tecnico Informatica";::1;"{""tecnico"":""Sin asignar"",""id_estado"":3}";"{""tecnico"":""Tecnico Informatica"",""id_usuario_asignado"":2,""id_estado"":3}"
+31;"2026-10-31 06:48:55";admin;UPDATE;tickets;28;"Cambió el estado del ticket #28: Abierto → Pendiente";::1;"{""estado"":""Abierto""}";"{""estado"":""Pendiente"",""solucion"":null}"
+30;"2026-10-31 06:48:39";admin;LOGIN;usuarios;1;"Inició sesión: admin";::1;;
+29;"2026-10-31 06:48:17";usuario;INSERT;tickets;28;"Creó el ticket TK-2026-0004";::1;;"{""codigo_ticket"":""TK-2026-0004"",""asunto"":""Probar Notificaciones"",""id_categoria"":2,""id_prioridad"":2,""id_usuario_solicitante"":3,""creado_por"":3,""id_departamento"":1,""id_inventario"":null,""adjuntos"":0}"
+28;"2026-10-31 06:47:48";usuario;LOGIN;usuarios;3;"Inició sesión: usuario";::1;;
+27;"2026-10-31 06:47:36";tecnico;LOGOUT;usuarios;2;"Cerró sesión: tecnico";::1;;
+26;"2026-10-31 06:47:01";tecnico;LOGIN;usuarios;2;"Inició sesión: tecnico";::1;;
+25;"2026-10-31 06:46:56";usuario;LOGOUT;usuarios;3;"Cerró sesión: usuario";::1;;
+24;"2026-10-31 06:46:41";usuario;LOGIN;usuarios;3;"Inició sesión: usuario";::1;;
+23;"2026-10-31 06:46:34";admin;LOGOUT;usuarios;1;"Cerró sesión: admin";::1;;
+22;"2026-10-31 06:46:27";admin;INSERT;tickets;27;"Creó el ticket TK-2026-0003";::1;;"{""codigo_ticket"":""TK-2026-0003"",""asunto"":""Holis"",""id_categoria"":4,""id_prioridad"":2,""id_usuario_solicitante"":3,""creado_por"":1,""id_departamento"":1,""id_inventario"":null,""adjuntos"":0}"
+21;"2026-10-31 06:44:45";admin;UPDATE;roles;2;"Editó el rol Tecnico";::1;"{""id_rol"":2,""nombre"":""Tecnico"",""descripcion"":""Gestión y resolución de tickets"",""nivel_acceso"":2,""permisos"":[""inventario.ver"",""tickets.crear_para_otros""]}";"{""nombre"":""Tecnico"",""descripcion"":""Gestión y resolución de tickets"",""nivel_acceso"":2,""permisos"":[""tickets.crear_para_otros""]}"
+20;"2026-10-31 06:42:39";admin;LOGIN;usuarios;1;"Inició sesión: admin";::1;;
+19;"2026-10-30 21:12:41";usuario;LOGIN;usuarios;3;"Inició sesión: usuario";::1;;
+18;"2026-10-30 21:12:36";admin;LOGOUT;usuarios;1;"Cerró sesión: admin";::1;;
+17;"2026-10-30 21:10:03";admin;BACKUP;;;"Creó el respaldo respaldo_20261031_021003.sql (14 tablas, 48 filas)";::1;;
+16;"2026-10-30 21:09:37";admin;DELETE;departamentos;6;"Eliminó el departamento Logística";::1;"{""id_departamento"":6,""nombre"":""Logística"",""descripcion"":""Almacén y distribución"",""estado"":""activo""}";
+15;"2026-10-30 21:09:03";admin;UPDATE;tickets;1;"Cambió el estado del ticket #1: En Proceso → Resuelto";::1;"{""estado"":""En Proceso""}";"{""estado"":""Resuelto"",""solucion"":""Se enchufo""}"
+14;"2026-10-30 21:08:18";admin;LOGIN;usuarios;1;"Inició sesión: admin";::1;;
+13;"2026-10-30 20:55:24";admin;LOGOUT;usuarios;1;"Cerró sesión: admin";::1;;
+12;"2026-10-30 20:53:27";admin;DELETE;categoria_incidencias;6;"Eliminó la categoría orueba";::1;"{""id_categoria"":6,""nombre"":""orueba"",""descripcion"":""22"",""id_prioridad_default"":null,""estado"":""inactivo""}";
+11;"2026-10-30 20:51:44";admin;UPDATE;usuarios;7;"Editó al usuario leandroar";::1;"{""id_usuario"":7,""nombres"":""Leandro"",""apellidos"":""Monterrey"",""correo"":""leandroargenis@gmail.com"",""usuario_login"":""leandroar"",""contraseña"":""[OCULTO]"",""telefono"":null,""id_departamento"":1,""id_rol"":1,""estado"":""activo""}";"{""nombres"":""Leandro"",""apellidos"":""Monterrey"",""correo"":""leandroargenis@gmail.com"",""usuario_login"":""leandroar"",""telefono"":""12"",""id_departamento"":1,""id_rol"":1,""estado"":""activo""}"
+10;"2026-10-30 20:51:33";admin;LOGIN;usuarios;1;"Inició sesión: admin";::1;;
+9;"2026-10-30 20:51:29";tecnico;LOGOUT;usuarios;2;"Cerró sesión: tecnico";::1;;
+8;"2026-10-30 20:51:26";tecnico;LOGIN;usuarios;2;"Inició sesión: tecnico";::1;;
+7;"2026-10-30 20:51:18";admin;LOGOUT;usuarios;1;"Cerró sesión: admin";::1;;
+6;"2026-10-30 20:50:56";admin;LOGIN;usuarios;1;"Inició sesión: admin";::1;;
+5;"2026-10-30 20:50:33";admin;LOGOUT;usuarios;1;"Cerró sesión: admin";::1;;
+4;"2026-10-30 20:39:13";admin;EXPORT;;;"Descargó los adjuntos de tickets (adjuntos_20261031_013912.zip, 3 archivos)";::1;;
+3;"2026-10-30 20:38:46";admin;LOGIN;usuarios;1;"Inició sesión: admin";::1;;
+2;"2026-10-30 08:16:02";admin;DELETE;usuarios;6;"Eliminó al usuario adn";::1;"{""id_usuario"":6,""nombres"":""Jhoander"",""apellidos"":""Externo"",""correo"":""admin@unisscon.com"",""usuario_login"":""adn"",""contraseña"":""[OCULTO]"",""telefono"":null,""id_departamento"":1,""id_rol"":3,""estado"":""activo""}";
+1;"2026-10-30 08:14:07";admin;LOGIN;usuarios;1;"Inició sesión: admin";::1;;

@@ -7,6 +7,26 @@
  * es el administrador quien decide qué técnico lo atiende.
  */
 if (!defined('NOMBRE_SISTEMA')) require_once '../includes/constants.php';
+require_once '../includes/permisos.php';
+
+// ¿Puede crear tickets a nombre de otra persona? (admin siempre; técnico si el admin le dio el permiso)
+$rol_form = (int)($_SESSION['id_rol'] ?? 0);
+$puede_delegar = rol_tiene_permiso($conexion, $rol_form, 'tickets.crear_para_otros');
+$lista_solicitantes = [];
+$equipos_todos = [];
+if ($puede_delegar) {
+    $r = $conexion->query("SELECT u.id_usuario, u.nombres, u.apellidos, u.usuario_login, u.id_departamento, d.nombre AS departamento
+                           FROM usuarios u JOIN departamentos d ON u.id_departamento = d.id_departamento
+                           WHERE u.estado IN ('activo','pasante') ORDER BY u.nombres, u.apellidos");
+    $lista_solicitantes = $r->fetch_all(MYSQLI_ASSOC);
+    $r = $conexion->query("SELECT id_inventario, codigo_equipo, tipo_equipo, marca, modelo, id_departamento FROM inventario_tecnologico WHERE estado = 'activo' ORDER BY codigo_equipo");
+    $equipos_todos = $r->fetch_all(MYSQLI_ASSOC);
+}
+$id_yo_form = 0;
+$qy = $conexion->prepare("SELECT id_usuario, id_departamento FROM usuarios WHERE usuario_login = ?");
+$qy->bind_param("s", $usuario_activo); $qy->execute();
+$yo_form = $qy->get_result()->fetch_assoc(); $qy->close();
+$id_yo_form = (int)($yo_form['id_usuario'] ?? 0);
 
 // Categorías activas, con la prioridad que se asignará automáticamente
 $categorias = $conexion->query("
@@ -96,6 +116,24 @@ $inventario = $stmt_inv->get_result();
         <div class="hd-card-body" style="padding:22px;">
             <form id="form-ticket">
 
+                <?php if ($puede_delegar): ?>
+                <div class="hd-section-label">Solicitante</div>
+                <div class="hd-form-group">
+                    <label class="hd-label">¿Para quién es el ticket?</label>
+                    <select name="id_solicitante" id="select-solicitante" class="hd-input hd-select">
+                        <option value="<?= $id_yo_form ?>" data-depto="<?= (int)($yo_form['id_departamento'] ?? 0) ?>">Para mí (<?= htmlspecialchars($usuario_activo) ?>)</option>
+                        <?php foreach ($lista_solicitantes as $s): if ((int)$s['id_usuario'] === $id_yo_form) continue; ?>
+                        <option value="<?= (int)$s['id_usuario'] ?>" data-depto="<?= (int)$s['id_departamento'] ?>">
+                            <?= htmlspecialchars($s['nombres'] . ' ' . $s['apellidos'] . ' (@' . $s['usuario_login'] . ') — ' . $s['departamento']) ?>
+                        </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <div style="font-size:.7rem;color:var(--muted);margin-top:4px;">
+                        El ticket queda a nombre del solicitante y se le avisa por notificación. Los equipos disponibles son los de su departamento.
+                    </div>
+                </div>
+                <?php endif; ?>
+
                 <div class="hd-section-label">Descripción del Problema</div>
 
                 <div class="hd-form-group">
@@ -103,6 +141,8 @@ $inventario = $stmt_inv->get_result();
                     <input type="text" name="asunto" id="asunto" class="hd-input"
                            placeholder="Ej. PC no enciende en el área de contabilidad" maxlength="200" required>
                     <div class="char-counter"><span id="cnt-asunto">0</span>/200</div>
+                    <div id="kb-sugerencias"></div>
+                    <script src="../assets/js/kb_sugerir.js" data-base="<?= URL_BASE ?>"></script>
                 </div>
 
                 <div class="hd-form-group">
@@ -236,6 +276,27 @@ function actualizarPrioridad(select) {
     }
 }
 
+<?php if ($puede_delegar): ?>
+// Equipos: se filtran por el departamento del solicitante elegido
+const EQUIPOS = <?= json_encode($equipos_todos, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) ?>;
+function pintarEquipos() {
+    const sel = document.getElementById('select-solicitante');
+    const depto = parseInt(sel.options[sel.selectedIndex].dataset.depto, 10);
+    const eq = document.getElementById('select-inventario');
+    eq.textContent = '';
+    const o0 = document.createElement('option'); o0.value = ''; o0.textContent = 'Selecciona el equipo...'; eq.appendChild(o0);
+    EQUIPOS.filter(e => parseInt(e.id_departamento, 10) === depto).forEach(function (e) {
+        const o = document.createElement('option'); o.value = e.id_inventario;
+        o.textContent = e.codigo_equipo + ' — ' + e.tipo_equipo + ' ' + (e.marca || '') + ' ' + (e.modelo || '');
+        eq.appendChild(o);
+    });
+}
+document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('select-solicitante').addEventListener('change', pintarEquipos);
+    pintarEquipos();
+});
+<?php endif; ?>
+
 function toggleInventario(cb) {
     document.getElementById('inventario-wrap').style.display = cb.checked ? 'block' : 'none';
     if (!cb.checked) document.getElementById('select-inventario').value = '';
@@ -256,7 +317,7 @@ $('#form-ticket').on('submit', function(e) {
         success: function(r) {
             resultado.html(r);
             if (r.includes('alert-success')) {
-                setTimeout(function() { window.location.href = 'mis_tickets.php'; }, 1800);
+                setTimeout(function() { window.location.href = (document.getElementById('select-solicitante') && document.getElementById('select-solicitante').value != '<?= $id_yo_form ?>') ? '<?= $rol_form === ROL_ADMIN ? 'tickets.php' : 'dashboard.php' ?>' : 'mis_tickets.php'; }, 1800);
             } else {
                 btn.prop('disabled', false).html('<i class="fas fa-paper-plane"></i> Enviar Ticket');
             }

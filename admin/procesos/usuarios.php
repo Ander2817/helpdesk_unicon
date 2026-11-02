@@ -9,7 +9,7 @@ include('../../config/conexion.php');
 $query = $conexion->query("
     SELECT u.id_usuario, u.nombres, u.apellidos, u.correo, 
            u.usuario_login, u.telefono, u.estado, 
-           d.nombre AS nombre_departamento, r.nombre AS nombre_rol 
+           d.nombre AS nombre_departamento, r.nombre AS nombre_rol, r.id_rol 
     FROM usuarios u 
     INNER JOIN departamentos d ON u.id_departamento = d.id_departamento 
     INNER JOIN roles r ON u.id_rol = r.id_rol
@@ -179,6 +179,7 @@ $query = $conexion->query("
         }
         .hd-modal-section:first-child { margin-top: 0; }
     </style>
+<?php require_once __DIR__ . '/../../includes/csrf.php'; echo csrf_script(); /* csrf-js */ ?>
 </head>
 <body>
 
@@ -256,7 +257,7 @@ $query = $conexion->query("
                         <select name="role" class="hd-input hd-select-input" required>
                             <option value="" disabled selected>Selecciona</option>
                             <?php
-                            $roles = $conexion->query("SELECT id_rol, nombre FROM roles");
+                            $roles = $conexion->query("SELECT id_rol, nombre FROM roles ORDER BY nivel_acceso ASC");
                             while ($r = $roles->fetch_assoc()):
                             ?>
                             <option value="<?= $r['id_rol'] ?>"><?= htmlspecialchars($r['nombre']) ?></option>
@@ -361,10 +362,11 @@ $query = $conexion->query("
                         <td><?= htmlspecialchars($row['nombre_departamento']) ?></td>
                         <td>
                             <?php
-                            $rol_color = match($row['nombre_rol']) {
-                                'Administrador' => 'rojo',
-                                'Técnico'       => 'naranja',
-                                default         => 'azul'
+                            // Por ID (no por nombre): así sigue funcionando aunque renombres el rol
+                            $rol_color = match((int)$row['id_rol']) {
+                                3       => 'rojo',
+                                2       => 'naranja',
+                                default => 'azul'
                             };
                             ?>
                             <span class="hd-tag hd-tag-<?= $rol_color ?>"><?= htmlspecialchars($row['nombre_rol']) ?></span>
@@ -448,6 +450,29 @@ function abrirModalEditar(id) {
     });
 }
 
+// Envío AJAX del formulario EDITAR. Va aquí (delegado) y no dentro de get_usuario.php porque
+// los <script> que llegan por innerHTML NO se ejecutan: por eso antes el botón Guardar no hacía nada.
+$(document).on('submit', '#form-editar', function(e) {
+    e.preventDefault();
+    const btn = $('#btn-editar');
+    const textoOriginal = '<i class="fas fa-save"></i> Guardar Cambios';
+    btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Guardando...');
+    $.ajax({
+        url: 'usuarios/edit_user.php',
+        type: 'POST',
+        data: $(this).serialize(),
+        success: function(r) {
+            $('#resultado-editar').html(r);
+            btn.prop('disabled', false).html(textoOriginal);
+            if (r.includes('alert-success')) setTimeout(function() { location.reload(); }, 1200);
+        },
+        error: function() {
+            $('#resultado-editar').html('<div class="alert alert-danger">Error de conexión con el servidor.</div>');
+            btn.prop('disabled', false).html(textoOriginal);
+        }
+    });
+});
+
 function cerrarModal(id) {
     document.getElementById(id).classList.remove('show');
     document.body.style.overflow = '';
@@ -469,6 +494,7 @@ $("#form-crear").off("submit").on("submit", function(e) {
         data: $(this).serialize(),
         success: function(htmlResponse) {
             $("#resultado-crear").html(htmlResponse);
+            document.getElementById('resultado-crear').scrollIntoView({behavior:'smooth', block:'center'});
             btn.prop('disabled', false).html(textoOriginal);
             
             // Si el backend devuelve un éxito, recargamos para actualizar la tabla
@@ -519,15 +545,13 @@ $(document).on('click', '.btn-eliminar', function() {
                 type: 'POST',
                 data: { id: idUsuario },
                 success: function(response) {
-                    // Si el backend responde con un fragmento HTML de éxito o error
-                    Swal.fire(
-                        'Acción Procesada',
-                        'El servidor ejecutó la solicitud correctamente.',
-                        'success'
-                    );
-                    $(`#usuario-row-${idUsuario}`).fadeOut(400, function() {
-                        $(this).remove();
-                    });
+                    // delete.php responde 'success' si borró; cualquier otro texto es el motivo del error
+                    if (String(response).trim() === 'success') {
+                        Swal.fire('Eliminado', 'El usuario fue eliminado.', 'success');
+                        $(`#usuario-row-${idUsuario}`).fadeOut(400, function() { $(this).remove(); });
+                    } else {
+                        Swal.fire('No se pudo eliminar', String(response).replace(/<[^>]*>/g, ''), 'warning');
+                    }
                 },
                 error: function() {
                     Swal.fire('Error', 'Hubo un problema de red o del servidor.', 'error');
@@ -536,6 +560,17 @@ $(document).on('click', '.btn-eliminar', function() {
         }
     });
 });
+
+// Viene del buscador de la barra superior: ?q=login → deja visible solo esa persona
+(function () {
+    const q = (new URLSearchParams(location.search).get('q') || '').toLowerCase();
+    if (!q) return;
+    document.querySelectorAll('table tbody tr').forEach(function (f) {
+        const code = f.querySelector('code');   // columna del usuario de login: coincidencia exacta
+        const ok = code ? code.textContent.trim().toLowerCase() === q : f.textContent.toLowerCase().includes(q);
+        f.style.display = ok ? '' : 'none';
+    });
+})();
 </script>
 </body>
 </html>

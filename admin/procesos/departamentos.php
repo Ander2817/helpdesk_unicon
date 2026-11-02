@@ -74,6 +74,7 @@ $query = $conexion->query("SELECT id_departamento, nombre, descripcion, estado F
         }
         .hd-modal-section { font-size: 0.68rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #94a3b8; margin: 16px 0 10px; padding-bottom: 6px; border-bottom: 1px solid #f1f5f9; }
     </style>
+<?php require_once __DIR__ . '/../../includes/csrf.php'; echo csrf_script(); /* csrf-js */ ?>
 </head>
 <body>
 
@@ -202,6 +203,26 @@ $("#form-crear").on("submit", function(e) {
         data: $(this).serialize(),
         success: function(htmlResponse) {
             $("#resultado-crear").html(htmlResponse);
+            document.getElementById('resultado-crear').scrollIntoView({behavior:'smooth', block:'center'});
+        },
+        error: function() {
+            $("#resultado-crear").html('<div class="alert alert-danger">Error de comunicación con el servidor.</div>');
+        }
+    });
+});
+
+// Envío Editar (delegado: el formulario se carga por AJAX)
+$(document).on('submit', '#form-editar', function(e) {
+    e.preventDefault();
+    $.ajax({
+        url: 'departamentos/actualizar_departamento.php',
+        type: 'POST',
+        data: $(this).serialize(),
+        success: function(htmlResponse) {
+            $("#resultado-editar").html(htmlResponse);
+        },
+        error: function(xhr) {
+            $("#resultado-editar").html('<div class="alert alert-danger">Error ' + xhr.status + ' al guardar.</div>');
         }
     });
 });

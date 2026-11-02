@@ -1,10 +1,12 @@
 <?php
 session_start();
+require_once __DIR__ . '/../../../includes/csrf.php'; csrf_verificar(); /* csrf */
 if (!isset($_SESSION['usser']) || $_SESSION['id_rol'] != 3) {
     die('<div class="alert alert-danger"><i class="fas fa-times-circle me-2"></i>Acceso denegado.</div>');
 }
 
 include('../../../config/conexion.php');
+require_once __DIR__ . '/../../../includes/bitacora.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $id = (int)($_POST['id'] ?? 0);
@@ -26,10 +28,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $check->close();
 
     // Eliminar registro
+    $antes = bitacora_fila($conexion, 'departamentos', 'id_departamento', $id);
     $delete_stmt = $conexion->prepare("DELETE FROM departamentos WHERE id_departamento = ?");
     $delete_stmt->bind_param("i", $id);
 
     if ($delete_stmt->execute()) {
+        registrar_bitacora($conexion, 'DELETE', 'departamentos', $id, 'Eliminó el departamento ' . ($antes['nombre'] ?? "#$id"), $antes, null);
         echo '<div class="alert alert-success"><i class="fas fa-trash-alt me-2"></i>Departamento eliminado con éxito.</div>
               <script>
                 $("#depto-row-' . $id . '").fadeOut(400, function() { $(this).remove(); });

@@ -1,0 +1,49 @@
+<?php
+// procesos/create_mantenimiento.php — registra un mantenimiento en el historial de un equipo.
+// Admin siempre; técnico solo con el permiso «Registrar mantenimientos de equipos».
+session_start();
+require_once __DIR__ . '/../includes/csrf.php'; csrf_verificar(); /* csrf */
+require_once '../includes/constants.php';
+require_once '../includes/functions.php';
+require_once '../includes/permisos.php';
+include '../config/conexion.php';
+require_once '../includes/bitacora.php';
+require_once '../includes/notificaciones.php';
+header('Content-Type: text/html; charset=utf-8');
+
+function res_mant(string $tipo, string $m): never { echo "<div class='alert alert-$tipo'>$m</div>"; exit(); }
+
+$rol = (int)($_SESSION['id_rol'] ?? 0);
+if (!isset($_SESSION['usser']) || !rol_tiene_permiso($conexion, $rol, 'inventario.mantenimiento')) {
+    http_response_code(403); res_mant('danger', 'No tienes permiso para registrar mantenimientos.');
+}
+$yo = noti_id_actual($conexion);
+$id_eq = (int)($_POST['id_inventario'] ?? 0);
+$tipo  = (string)($_POST['tipo'] ?? '');
+$desc  = trim((string)($_POST['descripcion'] ?? ''));
+$fecha = (string)($_POST['fecha'] ?? '');
+$prox  = trim((string)($_POST['proximo'] ?? ''));
+
+if (!in_array($tipo, ['preventivo', 'correctivo', 'actualizacion', 'otro'], true)) res_mant('warning', 'Tipo de mantenimiento no válido.');
+if (mb_strlen($desc) < 5 || mb_strlen($desc) > 1000) res_mant('warning', 'Describe lo realizado (entre 5 y 1000 caracteres).');
+$f = DateTimeImmutable::createFromFormat('!Y-m-d', $fecha);
+if (!$f || $f->format('Y-m-d') !== $fecha) res_mant('warning', 'Fecha no válida.');
+if ($f > new DateTimeImmutable('today')) res_mant('warning', 'La fecha del mantenimiento no puede ser futura.');
+$p = null;
+if ($prox !== '') {
+    $p = DateTimeImmutable::createFromFormat('!Y-m-d', $prox);
+    if (!$p || $p->format('Y-m-d') !== $prox || $p < $f) res_mant('warning', 'El próximo mantenimiento debe ser una fecha igual o posterior.');
+} else { $prox = null; }
+
+$q = $conexion->prepare("SELECT codigo_equipo FROM inventario_tecnologico WHERE id_inventario = ?");
+$q->bind_param("i", $id_eq); $q->execute();
+$eq = $q->get_result()->fetch_assoc(); $q->close();
+if (!$eq) res_mant('danger', 'El equipo no existe.');
+
+$i = $conexion->prepare("INSERT INTO mantenimientos_equipo (id_inventario, id_usuario, tipo, descripcion, fecha, proximo) VALUES (?, ?, ?, ?, ?, ?)");
+$i->bind_param("iissss", $id_eq, $yo, $tipo, $desc, $fecha, $prox); $i->execute();
+$id = $conexion->insert_id; $i->close();
+
+registrar_bitacora($conexion, 'INSERT', 'mantenimientos_equipo', $id, "Registró mantenimiento $tipo del equipo {$eq['codigo_equipo']}", null,
+    ['id_inventario' => $id_eq, 'tipo' => $tipo, 'fecha' => $fecha, 'proximo' => $prox, 'descripcion' => mb_substr($desc, 0, 300)]);
+res_mant('success', "<i class='fas fa-check-circle me-2'></i>Mantenimiento registrado.");

@@ -98,6 +98,7 @@ $inventario = $stmt_inv->get_result();
 
         textarea.hd-input { resize: vertical; min-height: 100px; }
     </style>
+<?php require_once __DIR__ . '/../includes/csrf.php'; echo csrf_script(); /* csrf-js */ ?>
 </head>
 <body>
 
@@ -133,6 +134,9 @@ $inventario = $stmt_inv->get_result();
                            placeholder="Ej. PC no enciende en el área de contabilidad"
                            maxlength="200" required>
                     <div class="char-counter"><span id="cnt-asunto">0</span>/200</div>
+                    <div id="kb-sugerencias"></div>
+                    <script src="../assets/js/kb_sugerir.js" data-base="<?= URL_BASE ?>"></script>
+
                 </div>
 
                 <div class="hd-form-group">

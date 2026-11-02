@@ -1,0 +1,14 @@
+# Permite subir respaldos grandes SOLO a este controlador.
+# Si tu PHP corre como FastCGI/FPM estas líneas se ignoran: edita php.ini (upload_max_filesize, post_max_size).
+<IfModule mod_php.c>
+    php_value upload_max_filesize 200M
+    php_value post_max_size 210M
+    php_value max_execution_time 600
+    php_value max_input_time 600
+</IfModule>
+<IfModule mod_php8.c>
+    php_value upload_max_filesize 200M
+    php_value post_max_size 210M
+    php_value max_execution_time 600
+    php_value max_input_time 600
+</IfModule>

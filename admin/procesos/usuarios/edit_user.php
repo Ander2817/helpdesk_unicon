@@ -1,54 +1,75 @@
 <?php
 session_start();
+require_once __DIR__ . '/../../../includes/csrf.php'; csrf_verificar(); /* csrf */
 if (!isset($_SESSION['usser']) || $_SESSION['id_rol'] != 3) {
     die('<div class="alert alert-danger">Acceso denegado.</div>');
 }
 
 require_once('../../../config/conexion.php');
+require_once __DIR__ . '/../../../includes/bitacora.php';
 
-// Evitar redeclaraciones si se incluye funciones.php en otro lado
-if (!function_exists('limpiar_inputs')) {
-    function limpiar_inputs($datos) {
-        return trim(stripslashes($datos));
-    }
+function limpiar_inputs_eu($datos) { return trim(stripslashes((string)$datos)); }
+function alerta_eu(string $tipo, string $icono, string $msj): void {
+    echo "<div class=\"alert alert-$tipo d-flex align-items-center\"><i class=\"fas $icono me-2\"></i><div>$msj</div></div>";
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    
-    $id           = (int)$_POST['id'];
-    $name         = limpiar_inputs($_POST['name']);
-    $last_name    = limpiar_inputs($_POST['lastname']);
-    $email        = limpiar_inputs($_POST['email']);
-    $user         = limpiar_inputs($_POST['user']);
-    $phone_number = !empty(trim($_POST['phone_number'])) ? limpiar_inputs($_POST['phone_number']) : null; 
-    $depto        = (int)$_POST['dpto'];
-    $rol          = (int)$_POST['role'];
-    $status       = limpiar_inputs($_POST['state']);
 
-    $insert_stmt = $conexion->prepare("UPDATE usuarios 
-                                       SET nombres = ?, apellidos = ?, correo = ?, usuario_login = ?, telefono = ?, id_departamento = ?, id_rol = ?, estado = ? 
-                                       WHERE id_usuario = ?");
+    $id           = (int)($_POST['id'] ?? 0);
+    $name         = limpiar_inputs_eu($_POST['name'] ?? '');
+    $last_name    = limpiar_inputs_eu($_POST['lastname'] ?? '');
+    $email        = limpiar_inputs_eu($_POST['email'] ?? '');
+    $phone_number = !empty(trim($_POST['phone_number'] ?? '')) ? limpiar_inputs_eu($_POST['phone_number']) : null;
+    $depto        = (int)($_POST['dpto'] ?? 0);
+    $rol          = (int)($_POST['role'] ?? 0);
+    $status       = limpiar_inputs_eu($_POST['state'] ?? '');
 
-    if ($insert_stmt === false) {
-        die('<div class="alert alert-danger">Error al preparar la consulta: ' . htmlspecialchars($conexion->error) . '</div>');
+    $estados_validos = ['activo','inactivo','reposo','pasante','vacaciones','suspendido'];
+
+    if ($id <= 0 || $name === '' || $last_name === '' || $depto <= 0 || $rol <= 0) {
+        alerta_eu('warning', 'fa-exclamation-circle', 'Completa todos los campos obligatorios.'); exit();
+    }
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        alerta_eu('warning', 'fa-exclamation-circle', 'El correo electrónico no es válido.'); exit();
+    }
+    if (!in_array($status, $estados_validos, true)) {
+        alerta_eu('warning', 'fa-exclamation-circle', 'Estado no válido.'); exit();
     }
 
-    // "sssssiisi" -> 5 strings, 2 ints, 1 string, 1 int (id)
-    $insert_stmt->bind_param("sssssiisi", $name, $last_name, $email, $user, $phone_number, $depto, $rol, $status, $id);
+    // Estado actual (también sirve para la bitácora)
+    $antes = bitacora_fila($conexion, 'usuarios', 'id_usuario', $id);
+    if (!$antes) { alerta_eu('danger', 'fa-times-circle', 'El usuario no existe.'); exit(); }
 
-    if ($insert_stmt->execute()) {
-        $insert_stmt->close();
-        echo '<div class="alert alert-success d-flex align-items-center">
-                <i class="fas fa-check-circle me-2"></i>
-                <div>¡Usuario actualizado correctamente!</div>
-              </div>';
-        exit();
-    } else {
-        echo '<div class="alert alert-danger d-flex align-items-center">
-                <i class="fas fa-exclamation-triangle me-2"></i>
-                <div>Error al actualizar: ' . htmlspecialchars($insert_stmt->error) . '</div>
-              </div>';
-        $insert_stmt->close();
+    // El login NO se modifica desde aquí (el campo es de solo lectura): se conserva el que ya tiene.
+    $user = $antes['usuario_login'];
+
+    // Un administrador no puede quitarse a sí mismo el rol ni desactivarse (se quedaría sin acceso)
+    if ($user === $_SESSION['usser'] && ($rol !== 3 || $status !== 'activo')) {
+        alerta_eu('warning', 'fa-exclamation-circle', 'No puedes cambiar tu propio rol ni desactivar tu propia cuenta. Pídeselo a otro administrador.'); exit();
+    }
+
+    try {
+        $stmt = $conexion->prepare("UPDATE usuarios
+                                    SET nombres = ?, apellidos = ?, correo = ?, telefono = ?, id_departamento = ?, id_rol = ?, estado = ?
+                                    WHERE id_usuario = ?");
+        $stmt->bind_param("ssssiisi", $name, $last_name, $email, $phone_number, $depto, $rol, $status, $id);
+        $stmt->execute();
+        $stmt->close();
+
+        registrar_bitacora($conexion, 'UPDATE', 'usuarios', $id, "Editó al usuario $user", $antes,
+            ['nombres'=>$name, 'apellidos'=>$last_name, 'correo'=>$email, 'usuario_login'=>$user, 'telefono'=>$phone_number,
+             'id_departamento'=>$depto, 'id_rol'=>$rol, 'estado'=>$status]);
+
+        alerta_eu('success', 'fa-check-circle', '¡Usuario actualizado correctamente!');
+    } catch (mysqli_sql_exception $e) {
+        if ($e->getCode() === 1062) {
+            alerta_eu('warning', 'fa-exclamation-circle', 'Ese correo ya está registrado en otra cuenta.');
+        } elseif ($e->getCode() === 1452) {
+            alerta_eu('danger', 'fa-times-circle', 'El departamento o el rol elegido no existe.');
+        } else {
+            error_log('[edit_user] ' . $e->getMessage());
+            alerta_eu('danger', 'fa-exclamation-triangle', 'No se pudo actualizar el usuario.');
+        }
     }
 }
 $conexion->close();

@@ -1,5 +1,6 @@
 <?php
 if (!defined('TICKET_ABIERTO')) require_once __DIR__ . '/../config/constants.php';
+require_once __DIR__ . '/permisos.php';
 
 // ===== CONTADORES REALES DEL SIDEBAR =====
 // Se calculan con una sola consulta por rol. Si un contador vale 0 no se dibuja la burbuja.
@@ -134,6 +135,12 @@ if ($rol_id == ROL_ADMIN) {
         <a href="roles.php" class="hd-sidebar-link <?= $pagina_actual=='roles.php'?'active':'' ?>">
             <i class="fas fa-shield-alt"></i> Roles
         </a>
+        <a href="bitacora.php" class="hd-sidebar-link <?= $pagina_actual=='bitacora.php'?'active':'' ?>">
+            <i class="fas fa-clipboard-list"></i> Bitácora
+        </a>
+        <a href="respaldo.php" class="hd-sidebar-link <?= $pagina_actual=='respaldo.php'?'active':'' ?>">
+            <i class="fas fa-database"></i> Respaldo y restauración
+        </a>
         <button class="hd-sidebar-link" onclick="toggleSub('sub-config')">
             <i class="fas fa-cogs"></i> Configuración
             <i class="fas fa-chevron-right hd-sidebar-chevron"></i>
@@ -154,6 +161,11 @@ if ($rol_id == ROL_ADMIN) {
         <a href="reportes.php" class="hd-sidebar-link <?= $pagina_actual=='reportes.php'?'active':'' ?>">
             <i class="fas fa-chart-bar"></i> Reportes
         </a>
+        <a href="kb.php" class="hd-sidebar-link <?= $pagina_actual=='kb.php'?'active':'' ?>">
+            <i class="fas fa-book-open"></i> Base de conocimiento
+        </a>
+
+
     </div>
 
     <?php elseif ($rol_id == 2): ?>
@@ -167,6 +179,13 @@ if ($rol_id == ROL_ADMIN) {
 
     <div class="hd-sidebar-section">
         <div class="hd-sidebar-label">Mis Tickets</div>
+        <?php if (rol_tiene_permiso($conexion, ROL_TECNICO, 'tickets.tomar')):
+            $sb_libres = (int)$conexion->query("SELECT COUNT(*) c FROM tickets WHERE id_usuario_asignado IS NULL AND id_estado NOT IN (" . TICKET_RESUELTO . "," . TICKET_CERRADO . ")")->fetch_assoc()['c']; ?>
+        <a href="tickets_sin_asignar.php" class="hd-sidebar-link <?= $pagina_actual=='tickets_sin_asignar.php'?'active':'' ?>">
+            <i class="fas fa-inbox"></i> Sin asignar
+            <?= sb_badge($sb_libres, 'naranja') ?>
+        </a>
+        <?php endif; ?>
         <a href="tickets_asignados.php" class="hd-sidebar-link <?= $pagina_actual=='tickets_asignados.php'?'active':'' ?>">
             <i class="fas fa-user-check"></i> Asignados a Mí
             <?= sb_badge($sb['asignados'], 'naranja') ?>
@@ -196,8 +215,13 @@ if ($rol_id == ROL_ADMIN) {
 
     <div class="hd-sidebar-section">
         <div class="hd-sidebar-label">Recursos</div>
-        <a href="inventario.php" class="hd-sidebar-link">
+        <?php if (rol_tiene_permiso($conexion, ROL_TECNICO, 'inventario.ver')): ?>
+        <a href="inventario.php" class="hd-sidebar-link <?= $pagina_actual=='inventario.php'?'active':'' ?>">
             <i class="fas fa-server"></i> Inventario TI
+        </a>
+        <?php endif; ?>
+        <a href="kb.php" class="hd-sidebar-link <?= $pagina_actual=='kb.php'?'active':'' ?>">
+            <i class="fas fa-book-open"></i> Base de conocimiento
         </a>
     </div>
 
@@ -235,6 +259,11 @@ if ($rol_id == ROL_ADMIN) {
         <a href="perfil.php" class="hd-sidebar-link <?= $pagina_actual=='perfil.php'?'active':'' ?>">
             <i class="fas fa-user-edit"></i> Mi Perfil
         </a>
+
+        <a href="kb.php" class="hd-sidebar-link <?= $pagina_actual=='kb.php'?'active':'' ?>">
+            <i class="fas fa-book-open"></i> Base de conocimiento
+        </a>
+
     </div>
 
     <?php endif; ?>

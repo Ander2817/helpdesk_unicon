@@ -7,7 +7,7 @@ $id = (int)($_GET['id'] ?? 0);
 if (!$id) die('<div class="alert alert-danger">ID no válido.</div>');
 
 $query_deptos = $conexion->query("SELECT id_departamento, nombre FROM departamentos WHERE estado = 'activo'");
-$query_roles  = $conexion->query("SELECT id_rol, nombre FROM roles");
+$query_roles  = $conexion->query("SELECT id_rol, nombre FROM roles ORDER BY nivel_acceso ASC");
 $result       = $conexion->query("SELECT * FROM usuarios WHERE id_usuario = $id");
 $row          = $result->fetch_assoc();
 if (!$row) die('<div class="alert alert-danger">Usuario no encontrado.</div>');
@@ -89,27 +89,3 @@ if (!$row) die('<div class="alert alert-danger">Usuario no encontrado.</div>');
         </button>
     </div>
 </form>
-
-<script>
-$('#form-editar').off('submit').on('submit', function(e) {
-    e.preventDefault();
-    var btn = $('#btn-editar');
-    btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Guardando...');
-    $.ajax({
-        url: 'edit_user.php', // CORRECCIÓN: Al estar al mismo nivel, se llama directo
-        type: 'POST',
-        data: $(this).serialize(),
-        success: function(r) {
-            $('#resultado-editar').html(r);
-            btn.prop('disabled', false).html('<i class="fas fa-save"></i> Guardar Cambios');
-            if (r.includes('alert-success')) {
-                setTimeout(function() { location.reload(); }, 1500);
-            }
-        },
-        error: function() {
-            $('#resultado-editar').html('<div class="alert alert-danger">Error de conexión con el servidor.</div>');
-            btn.prop('disabled', false).html('<i class="fas fa-save"></i> Guardar Cambios');
-        }
-    });
-});
-</script>

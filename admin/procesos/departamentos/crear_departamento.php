@@ -1,10 +1,12 @@
 <?php
 session_start();
+require_once __DIR__ . '/../../../includes/csrf.php'; csrf_verificar(); /* csrf */
 if (!isset($_SESSION['usser']) || $_SESSION['id_rol'] != 3) {
     die('<div class="alert alert-danger"><i class="fas fa-times-circle me-2"></i>Acceso denegado.</div>');
 }
 
 include('../../../config/conexion.php');
+require_once __DIR__ . '/../../../includes/bitacora.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     
@@ -42,6 +44,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $insert_stmt->bind_param("sss", $nombre, $descripcion, $estado);
 
     if ($insert_stmt->execute()) {
+        registrar_bitacora($conexion, 'INSERT', 'departamentos', $conexion->insert_id, "Creó el departamento $nombre", null,
+            ['nombre'=>$nombre, 'descripcion'=>$descripcion, 'estado'=>$estado]);
         echo '<div class="alert alert-success d-flex align-items-center" role="alert">
                 <i class="fas fa-check-circle me-2"></i>
                 <div>¡Departamento registrado exitosamente! Ya puede salir de esta ventana.  </div>

@@ -7,8 +7,30 @@ define('NOMBRE_SISTEMA', 'Unicon HelpDesk');
 define('VERSION_SISTEMA', '1.0.0');
 define('EMPRESA_NOMBRE', 'Industrias Unicon C.A.');
 
-// Rutas base
-define('URL_BASE', 'http://localhost/helpdesk_unicon/'); 
+// Ajustes locales opcionales (config/local.php): APP_ENV, URL_BASE, credenciales de BD. Ver config/local.ejemplo.php
+if (is_file(__DIR__ . '/../config/local.php')) require_once __DIR__ . '/../config/local.php';
+if (!defined('APP_ENV')) define('APP_ENV', 'local');          // 'local' | 'produccion'
+date_default_timezone_set(defined('APP_TIMEZONE') ? APP_TIMEZONE : 'America/Caracas');   // misma hora en PHP y en la BD
+
+// Rutas base: si no se fijó en config/local.php, se deduce de la petición
+define('URL_BASE_CONFIGURADA', defined('URL_BASE'));
+if (!defined('URL_BASE')) {
+    $__esq  = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $__host = preg_replace('/[^A-Za-z0-9.:\-\[\]]/', '', $_SERVER['HTTP_HOST'] ?? 'localhost');
+    $__raiz = realpath($_SERVER['DOCUMENT_ROOT'] ?? '');
+    $__proy = realpath(__DIR__ . '/..');
+    $__ruta = ($__raiz && $__proy && strpos($__proy, $__raiz) === 0)
+        ? str_replace('\\', '/', substr($__proy, strlen($__raiz))) : '/helpdesk_unicon';
+    define('URL_BASE', $__esq . '://' . $__host . rtrim($__ruta, '/') . '/');
+    unset($__esq, $__host, $__raiz, $__proy, $__ruta);
+}
+
+// En producción los errores de PHP no se muestran en pantalla: van al log del servidor
+if (APP_ENV === 'produccion') {
+    ini_set('display_errors', '0');
+    ini_set('log_errors', '1');
+    error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE);
+}
 
 
 // 2. CONFIGURACIÓN DE ROLES

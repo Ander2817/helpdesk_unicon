@@ -1,11 +1,16 @@
 <?php
 session_start();
+require_once __DIR__ . '/../includes/csrf.php'; csrf_verificar(); /* csrf */
 if (!isset($_SESSION['usser']) || !isset($_SESSION['id_rol'])) {
     die('<div class="alert alert-danger">Acceso denegado.</div>');
 }
 
 include('../config/conexion.php');
+require_once __DIR__ . '/../includes/bitacora.php';
 require_once '../includes/adjuntos.php';
+require_once '../includes/constants.php';
+require_once '../includes/permisos.php';
+require_once '../includes/notificaciones.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
@@ -67,6 +72,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         die('<div class="alert alert-danger">Error al obtener los datos del usuario.</div>');
     }
 
+    // 3.1 ¿Se crea a nombre de OTRA persona? Solo el admin, o un técnico con el permiso «Crear tickets a nombre de otro»
+    $id_usuario_creador = (int)$usuario['id_usuario'];
+    $id_solicitante_post = (int)($_POST['id_solicitante'] ?? 0);
+    if ($id_solicitante_post > 0 && $id_solicitante_post !== $id_usuario_creador) {
+        $rol_creador = (int)$_SESSION['id_rol'];
+        if (!($rol_creador === ROL_ADMIN || rol_tiene_permiso($conexion, $rol_creador, 'tickets.crear_para_otros'))) {
+            die('<div class="alert alert-danger"><i class="fas fa-times-circle me-2"></i>No tienes permiso para crear tickets a nombre de otro usuario.</div>');
+        }
+        $stmt_sol = $conexion->prepare("SELECT id_usuario, id_departamento FROM usuarios WHERE id_usuario = ? AND estado IN ('activo','pasante')");
+        $stmt_sol->bind_param("i", $id_solicitante_post);
+        $stmt_sol->execute();
+        $solicitante = $stmt_sol->get_result()->fetch_assoc();
+        $stmt_sol->close();
+        if (!$solicitante) {
+            die('<div class="alert alert-danger"><i class="fas fa-times-circle me-2"></i>El solicitante elegido no existe o no está activo.</div>');
+        }
+        $usuario = $solicitante;   // el ticket (y su departamento) quedan a nombre del solicitante
+    }
+
     $id_usuario_solicitante = $usuario['id_usuario'];
     $id_departamento        = $usuario['id_departamento'];
 
@@ -123,6 +147,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         adjuntos_guardar($conexion, $id_ticket_nuevo, $adjuntos, $archivos_escritos);
         $conexion->commit();
+
+        registrar_bitacora($conexion, 'INSERT', 'tickets', $id_ticket_nuevo, "Creó el ticket $codigo_ticket", null,
+            ['codigo_ticket'=>$codigo_ticket, 'asunto'=>$asunto, 'id_categoria'=>$id_categoria, 'id_prioridad'=>$id_prioridad,
+             'id_usuario_solicitante'=>$id_usuario_solicitante, 'creado_por'=>$id_usuario_creador,
+             'id_departamento'=>$id_departamento, 'id_inventario'=>$id_inventario, 'adjuntos'=>count($adjuntos)]);
+        noti_evento_ticket_creado($conexion, $id_ticket_nuevo, $id_usuario_creador, (int)$id_usuario_solicitante);
 
         $detalle_adjuntos = $adjuntos
             ? ' · ' . count($adjuntos) . ' archivo' . (count($adjuntos) !== 1 ? 's' : '') . ' adjunto' . (count($adjuntos) !== 1 ? 's' : '')

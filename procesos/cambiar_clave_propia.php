@@ -1,7 +1,9 @@
 <?php
 session_start();
+require_once __DIR__ . '/../includes/csrf.php'; csrf_verificar(); /* csrf */
 require_once '../includes/constants.php';
 include '../config/conexion.php';
+require_once __DIR__ . '/../includes/bitacora.php';
 
 header('Content-Type: text/html; charset=utf-8');
 
@@ -64,6 +66,8 @@ $stmt = $conexion->prepare("UPDATE usuarios SET `contraseña` = ? WHERE id_usuar
 $stmt->bind_param("si", $nuevo_hash, $usuario['id_usuario']);
 $stmt->execute();
 $stmt->close();
+
+registrar_bitacora($conexion, 'UPDATE', 'usuarios', $usuario['id_usuario'], 'Cambió su propia contraseña');
 
 // Renovar el ID de sesión tras un cambio de credenciales
 session_regenerate_id(true);

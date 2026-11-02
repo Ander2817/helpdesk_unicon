@@ -1,10 +1,12 @@
 <?php
 session_start();
+require_once __DIR__ . '/../../../includes/csrf.php'; csrf_verificar(); /* csrf */
 if (!isset($_SESSION['usser']) || $_SESSION['id_rol'] != 3) {
     die('<div class="alert alert-danger"><i class="fas fa-times-circle me-2"></i>Acceso denegado.</div>');
 }
 
 include('../../../config/conexion.php');
+require_once __DIR__ . '/../../../includes/bitacora.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     
@@ -34,10 +36,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $check_stmt->close();
 
     // Actualización
+    $antes = bitacora_fila($conexion, 'departamentos', 'id_departamento', $id);
     $update_stmt = $conexion->prepare("UPDATE departamentos SET nombre = ?, descripcion = ?, estado = ? WHERE id_departamento = ?");
     $update_stmt->bind_param("sssi", $nombre, $descripcion, $estado, $id);
 
     if ($update_stmt->execute()) {
+        registrar_bitacora($conexion, 'UPDATE', 'departamentos', $id, "Editó el departamento $nombre", $antes,
+            ['nombre'=>$nombre, 'descripcion'=>$descripcion, 'estado'=>$estado]);
         echo '<div class="alert alert-success"><i class="fas fa-check-circle me-2"></i>¡Cambios guardados con éxito!</div>
               <script>setTimeout(function(){ location.reload(); }, 1200);</script>';
     } else {

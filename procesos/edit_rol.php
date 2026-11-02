@@ -1,0 +1,81 @@
+<?php
+session_start();
+require_once __DIR__ . '/../includes/csrf.php'; csrf_verificar(); /* csrf */
+require_once '../includes/functions.php';
+require_once '../includes/constants.php';
+include '../config/conexion.php';
+require_once __DIR__ . '/../includes/bitacora.php';
+require_once __DIR__ . '/../includes/permisos.php';
+
+header('Content-Type: text/html; charset=utf-8');
+
+if (!isset($_SESSION['usser']) || (int)($_SESSION['id_rol'] ?? 0) !== 3) {
+    http_response_code(403);
+    echo "<div class='alert alert-danger'><i class='fas fa-times-circle me-2'></i>No autorizado.</div>";
+    exit();
+}
+
+function err_rol(string $m): never {
+    echo "<div class='alert alert-danger'><i class='fas fa-times-circle me-2'></i>$m</div>";
+    exit();
+}
+
+$id_rol       = (int)($_POST['id_rol'] ?? 0);
+$nombre       = limpiar_inputs($_POST['nombre'] ?? '');
+$descripcion  = procesar_opcional($_POST['descripcion'] ?? null);
+$nivel_acceso = (int)($_POST['nivel_acceso'] ?? 0);
+
+if ($id_rol <= 0 || $nombre === '' || $nivel_acceso < 1 || $nivel_acceso > 9) {
+    err_rol('Datos inválidos: el nombre es obligatorio y el nivel debe estar entre 1 y 9.');
+}
+if (mb_strlen($nombre) > 50) err_rol('El nombre no puede superar los 50 caracteres.');
+
+try {
+    $antes = bitacora_fila($conexion, 'roles', 'id_rol', $id_rol);
+    if (!$antes) err_rol('El rol no existe.');
+
+    // Jerarquía: niveles únicos y el Administrador siempre es el más alto
+    $otros = [];
+    $res = $conexion->query("SELECT id_rol, nivel_acceso FROM roles");
+    while ($f = $res->fetch_assoc()) { if ((int)$f['id_rol'] !== $id_rol) $otros[(int)$f['id_rol']] = (int)$f['nivel_acceso']; }
+
+    if (in_array($nivel_acceso, $otros, true)) err_rol('Ya existe otro rol con ese nivel de acceso. Cada rol debe tener un nivel distinto.');
+    if ($id_rol === ROL_ADMIN) {
+        if ($otros && $nivel_acceso <= max($otros)) err_rol('El Administrador debe tener el nivel de acceso más alto.');
+    } else {
+        $nivel_admin = $otros[ROL_ADMIN] ?? PHP_INT_MAX;
+        if ($nivel_acceso >= $nivel_admin) err_rol('Solo el Administrador puede tener el nivel más alto.');
+    }
+
+    // Permisos (el admin los tiene siempre; solo se guardan los que el catálogo permite para ese rol)
+    $permisos_antes = permisos_de_rol($conexion, $id_rol);
+    $permisos_nuevos = null;
+    if ($id_rol !== ROL_ADMIN) {
+        $permitidos = array_keys(array_filter(permisos_catalogo(), fn($p) => in_array($id_rol, $p['roles'], true)));
+        $permisos_nuevos = array_values(array_intersect((array)($_POST['permisos'] ?? []), $permitidos));
+    }
+
+    $conexion->begin_transaction();
+    $stmt = $conexion->prepare("UPDATE roles SET nombre = ?, descripcion = ?, nivel_acceso = ? WHERE id_rol = ?");
+    $stmt->bind_param("ssii", $nombre, $descripcion, $nivel_acceso, $id_rol);
+    $stmt->execute();
+
+    if ($permisos_nuevos !== null) {
+        $conexion->query("DELETE FROM rol_permisos WHERE id_rol = $id_rol");
+        if ($permisos_nuevos) {
+            $ins = $conexion->prepare("INSERT INTO rol_permisos (id_rol, permiso) VALUES (?, ?)");
+            foreach ($permisos_nuevos as $p) { $ins->bind_param("is", $id_rol, $p); $ins->execute(); }
+        }
+    }
+    $conexion->commit();
+
+    registrar_bitacora($conexion, 'UPDATE', 'roles', $id_rol, "Editó el rol $nombre", $antes + ['permisos' => $permisos_antes],
+        ['nombre'=>$nombre, 'descripcion'=>$descripcion, 'nivel_acceso'=>$nivel_acceso, 'permisos' => $permisos_nuevos ?? 'todos']);
+
+    echo "<div class='alert alert-success'><i class='fas fa-check-circle me-2'></i>Rol actualizado correctamente.</div>";
+} catch (mysqli_sql_exception $e) {
+    try { $conexion->rollback(); } catch (Throwable $x) {}
+    if ($e->getCode() === 1062) err_rol('Ya existe un rol con ese nombre.');
+    error_log('[edit_rol] ' . $e->getMessage());
+    err_rol('Error al actualizar el rol.');
+}

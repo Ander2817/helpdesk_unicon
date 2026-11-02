@@ -121,6 +121,10 @@ include_once '../includes/sidebar.php';
                                 onclick="toggleCategoria(<?= $c['id_categoria'] ?>, '<?= htmlspecialchars($c['nombre'], ENT_QUOTES) ?>', '<?= $c['estado'] ?>')">
                                 <i class="fas fa-toggle-<?= $c['estado']=='activo' ? 'on' : 'off' ?>"></i>
                             </button>
+                            <button class="hd-icon-btn danger" title="Eliminar"
+                                onclick="eliminarCategoria(<?= (int)$c['id_categoria'] ?>, '<?= htmlspecialchars($c['nombre'], ENT_QUOTES) ?>')">
+                                <i class="fas fa-trash"></i>
+                            </button>
                         </td>
                     </tr>
                     <?php endwhile; ?>
@@ -242,6 +246,27 @@ function toggleCategoria(id, nombre, estadoActual) {
                 Swal.fire('Error', 'No se pudo actualizar el estado.', 'error');
             });
         }
+    });
+}
+
+function eliminarCategoria(id, nombre) {
+    Swal.fire({
+        title: `¿Eliminar "${nombre}"?`,
+        text: 'Se borrará de forma permanente. Si ya tiene tickets, no se podrá eliminar (en ese caso, desactívala).',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (!result.isConfirmed) return;
+        $.post('../procesos/delete_categoria.php', { id_categoria: id }, null, 'json')
+            .done(function(r) {
+                if (r.ok) { Swal.fire('Eliminada', r.msg, 'success').then(() => location.reload()); }
+                else      { Swal.fire('No se pudo eliminar', r.msg, 'warning'); }
+            })
+            .fail(function() { Swal.fire('Error', 'Hubo un problema de red o del servidor.', 'error'); });
     });
 }
 </script>

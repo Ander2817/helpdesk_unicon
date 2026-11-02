@@ -1,8 +1,11 @@
 <?php
 session_start();
+require_once __DIR__ . '/../includes/csrf.php'; csrf_verificar(); /* csrf */
 require_once '../includes/constants.php';
 require_once '../includes/flujo_tickets.php';
+require_once '../includes/notificaciones.php';
 include '../config/conexion.php';
+require_once __DIR__ . '/../includes/bitacora.php';
 
 header('Content-Type: text/html; charset=utf-8');
 
@@ -95,6 +98,10 @@ try {
     $stmt->close();
 
     $conexion->commit();
+    registrar_bitacora($conexion, 'UPDATE', 'tickets', $id_ticket, "Asignó el ticket #$id_ticket a {$tecnico['nombre']}",
+        ['tecnico'=>$anterior, 'id_estado'=>$ticket['id_estado']],
+        ['tecnico'=>$tecnico['nombre'], 'id_usuario_asignado'=>$id_tecnico, 'id_estado'=>$nuevo_estado]);
+    noti_evento_asignado($conexion, $id_ticket, $id_admin ?: null, $id_tecnico, $tecnico['nombre']);
     echo "<div class='alert alert-success'><i class='fas fa-check-circle me-2'></i>Ticket asignado a <strong>" . htmlspecialchars($tecnico['nombre']) . "</strong>.</div>";
 } catch (mysqli_sql_exception $e) {
     $conexion->rollback();

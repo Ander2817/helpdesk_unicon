@@ -54,6 +54,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     if($insert_stmt->execute()) {
         $insert_stmt->close();
+        // Aviso a los administradores: alguien nuevo se registró y hay que revisar su rol/departamento
+        require_once('../includes/notificaciones.php');
+        require_once('../includes/bitacora.php');
+        registrar_bitacora($conexion, 'INSERT', 'usuarios', $conexion->insert_id, "Nuevo registro de usuario: $user (auto-registro)");
+        noti_admins($conexion, "Nuevo usuario registrado: $name $last_name (@$user). Revisa su rol y departamento.", 'usuario', 'admin/procesos/usuarios.php?q=' . urlencode($user));
         set_alerta_flash('success', 'Usuario registrado exitosamente. Ya puedes iniciar sesion.');
         redirigir('../index.php');
     } else {

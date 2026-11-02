@@ -1,9 +1,12 @@
 <?php
 session_start();
+require_once __DIR__ . '/../includes/csrf.php'; csrf_verificar(); /* csrf */
 require_once '../includes/functions.php';
 require_once '../includes/constants.php';
 require_once '../includes/flujo_tickets.php';
+require_once '../includes/notificaciones.php';
 include '../config/conexion.php';
+require_once __DIR__ . '/../includes/bitacora.php';
 
 header('Content-Type: text/html; charset=utf-8');
 
@@ -56,7 +59,7 @@ if ($rol_id === ROL_TECNICO && ((int)$ticket['id_usuario_asignado'] !== $id_usua
 }
 
 // Sin técnico no hay atención: primero el administrador debe asignarlo
-if (empty($ticket['id_usuario_asignado'])) {
+if (empty($ticket['id_usuario_asignado']) && $rol_id !== ROL_ADMIN) {
     echo "<div class='alert alert-warning'><i class='fas fa-exclamation-circle me-2'></i>Este ticket aún no tiene técnico. Asígnalo primero.</div>";
     exit();
 }
@@ -78,8 +81,12 @@ try {
     if ($nuevo_estado === TICKET_RESUELTO) {
         $stmt = $conexion->prepare("UPDATE tickets SET id_estado = ?, solucion = ?, fecha_cierre = NOW() WHERE id_tickets = ?");
         $stmt->bind_param("isi", $nuevo_estado, $solucion, $id_ticket);
+    } elseif ($nuevo_estado === TICKET_CERRADO) {
+        $stmt = $conexion->prepare("UPDATE tickets SET id_estado = ?, fecha_cierre = COALESCE(fecha_cierre, NOW()) WHERE id_tickets = ?");
+        $stmt->bind_param("ii", $nuevo_estado, $id_ticket);
     } else {
-        $stmt = $conexion->prepare("UPDATE tickets SET id_estado = ? WHERE id_tickets = ?");
+        // Estado no final (p. ej. reabrir): el ticket deja de tener fecha de cierre
+        $stmt = $conexion->prepare("UPDATE tickets SET id_estado = ?, fecha_cierre = NULL WHERE id_tickets = ?");
         $stmt->bind_param("ii", $nuevo_estado, $id_ticket);
     }
     $stmt->execute();
@@ -92,6 +99,9 @@ try {
     $stmt_h->execute();
 
     $conexion->commit();
+    registrar_bitacora($conexion, 'UPDATE', 'tickets', $id_ticket, "Cambió el estado del ticket #$id_ticket: $anterior → $nuevo",
+        ['estado'=>$anterior], ['estado'=>$nuevo, 'solucion'=>($nuevo_estado === TICKET_RESUELTO ? $solucion : null)]);
+    noti_evento_estado($conexion, $id_ticket, $id_usuario_actual ?: null, $rol_id, $nuevo_estado, (int)$ticket['id_estado']);
     echo "<div class='alert alert-success'><i class='fas fa-check-circle me-2'></i>Ticket actualizado correctamente.</div>";
 } catch (mysqli_sql_exception $e) {
     $conexion->rollback();

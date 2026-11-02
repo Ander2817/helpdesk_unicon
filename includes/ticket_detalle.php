@@ -10,6 +10,8 @@
  */
 
 if (!defined('NOMBRE_SISTEMA')) require_once '../includes/constants.php';
+require_once '../includes/sla.php';
+require_once '../includes/adjuntos_comentario.php';
 require_once __DIR__ . '/flujo_tickets.php';
 require_once __DIR__ . '/adjuntos.php';
 
@@ -89,7 +91,11 @@ if (!$puede_ver) {
 }
 
 // Archivos adjuntos del ticket
-$stmt_adj = $conexion->prepare("SELECT id_adjunto, nombre_archivo, ruta_archivo, tipo_archivo, fecha_subida FROM adjuntos WHERE id_ticket = ? ORDER BY id_adjunto ASC");
+try {   // solo los del ticket (los de comentarios se muestran dentro de cada comentario)
+    $stmt_adj = $conexion->prepare("SELECT id_adjunto, nombre_archivo, ruta_archivo, tipo_archivo, fecha_subida FROM adjuntos WHERE id_ticket = ? AND id_comentario IS NULL ORDER BY id_adjunto ASC");
+} catch (Throwable $e) {   // aún sin la migración de la entrega 4
+    $stmt_adj = $conexion->prepare("SELECT id_adjunto, nombre_archivo, ruta_archivo, tipo_archivo, fecha_subida FROM adjuntos WHERE id_ticket = ? ORDER BY id_adjunto ASC");
+}
 $stmt_adj->bind_param("i", $id_ticket);
 $stmt_adj->execute();
 $adjuntos_ticket = $stmt_adj->get_result()->fetch_all(MYSQLI_ASSOC);
@@ -106,6 +112,24 @@ $comentarios = $conexion->prepare("
 $comentarios->bind_param("i", $id_ticket);
 $comentarios->execute();
 $comentarios = $comentarios->get_result();
+
+// Adjuntos de cada comentario, SLA y encuesta (si faltan las tablas nuevas, simplemente no se muestran)
+$adj_por_comentario = [];
+try {
+    $qa = $conexion->prepare("SELECT id_adjunto, id_comentario, nombre_archivo, tipo_archivo FROM adjuntos WHERE id_ticket = ? AND id_comentario IS NOT NULL ORDER BY id_adjunto");
+    $qa->bind_param("i", $id_ticket); $qa->execute();
+    foreach ($qa->get_result() as $fa) $adj_por_comentario[(int)$fa['id_comentario']][] = $fa;
+    $qa->close();
+} catch (Throwable $e) {}
+$sla_info = sla_para_ticket($conexion, $id_ticket);
+$encuesta = null;
+try {
+    $qe = $conexion->prepare("SELECT puntuacion, comentario, fecha FROM encuestas_ticket WHERE id_ticket = ?");
+    $qe->bind_param("i", $id_ticket); $qe->execute();
+    $encuesta = $qe->get_result()->fetch_assoc() ?: null;
+    $qe->close();
+} catch (Throwable $e) {}
+$dias_reabrir = 7;
 
 // Historial (auditoría de cambios)
 $historial = $conexion->prepare("
@@ -135,7 +159,7 @@ if ($puede_reasignar && $ticket_activo) {
 
 // Estados a los que se puede pasar desde el actual (misma regla que valida el servidor).
 // Sin técnico asignado no hay nada que gestionar: primero el admin debe asignarlo.
-$opciones_estado = ($puede_gestionar && !$sin_tecnico)
+$opciones_estado = ($puede_gestionar && (!$sin_tecnico || $rol_id === ROL_ADMIN))
     ? estados_siguientes((int)$ticket['id_estado'], $rol_id)
     : [];
 
@@ -298,6 +322,7 @@ $link_volver = match($rol_id) {
 
             <div class="hd-meta-list">
                 <div class="hd-meta-item"><span>Categoría</span><span><?= htmlspecialchars($ticket['categoria_nombre']) ?></span></div>
+                <?= $sla_info ? sla_meta_html($sla_info) : '' ?>
                 <div class="hd-meta-item"><span>Solicitante</span><span><?= htmlspecialchars($ticket['sol_nombres'] . ' ' . $ticket['sol_apellidos']) ?></span></div>
                 <div class="hd-meta-item"><span>Departamento</span><span><?= htmlspecialchars($ticket['departamento_nombre']) ?></span></div>
                 <div class="hd-meta-item"><span>Técnico asignado</span><span><?= $ticket['asig_nombres'] ? htmlspecialchars($ticket['asig_nombres'] . ' ' . $ticket['asig_apellidos']) : 'Sin asignar' ?></span></div>
@@ -355,6 +380,13 @@ $link_volver = match($rol_id) {
                     <?php foreach ($opciones_estado as $op): ?>
                     <option value="<?= $op ?>"><?= htmlspecialchars(nombre_estado($op)) ?></option>
                     <?php endforeach; ?>
+                    <?php // Los estados que este rol no puede usar se muestran apagados, con la razón, para que no parezca que faltan
+                    foreach (todos_los_estados() as $id_e => $nom_e):
+                        if ($id_e === (int)$ticket['id_estado'] || in_array($id_e, $opciones_estado, true)) continue;
+                        $razon = ($id_e === TICKET_ABIERTO) ? 'solo sin técnico asignado'
+                               : (($id_e === TICKET_CERRADO) ? 'requiere permiso de cierre' : 'no disponible'); ?>
+                    <option value="" disabled><?= htmlspecialchars($nom_e) ?> — <?= $razon ?></option>
+                    <?php endforeach; ?>
                 </select>
             </div>
 
@@ -370,6 +402,66 @@ $link_volver = match($rol_id) {
             </div>
         </form>
     </div>
+    <?php endif; ?>
+
+    <?php // ===== VALORACIÓN Y REAPERTURA =====
+    $est_actual = (int)$ticket['id_estado'];
+    $terminado  = in_array($est_actual, [TICKET_RESUELTO, TICKET_CERRADO], true);
+    $puede_reabrir = $es_solicitante && $est_actual === TICKET_RESUELTO
+        && (empty($ticket['fecha_cierre']) || strtotime($ticket['fecha_cierre']) > time() - $dias_reabrir * 86400);
+    if ($terminado && ($es_solicitante || $encuesta)): ?>
+    <style>
+        .hd-estrellas { display:inline-flex; flex-direction:row-reverse; }
+        .hd-estrellas input { display:none; }
+        .hd-estrellas label { font-size:1.9rem; color:#cbd5e1; cursor:pointer; padding:0 2px; line-height:1; }
+        .hd-estrellas input:checked ~ label, .hd-estrellas label:hover, .hd-estrellas label:hover ~ label { color:#f59e0b; }
+    </style>
+    <div class="hd-card" style="padding:18px 22px;margin-bottom:18px;">
+        <h5 class="hd-card-title" style="margin-bottom:10px;"><i class="fas fa-star" style="color:#f59e0b;"></i> Valoración de la atención</h5>
+        <?php if ($encuesta): ?>
+            <div style="font-size:1.4rem;color:#f59e0b;letter-spacing:2px;"><?= str_repeat('★', (int)$encuesta['puntuacion']) . '<span style="color:#cbd5e1;">' . str_repeat('★', 5 - (int)$encuesta['puntuacion']) . '</span>' ?></div>
+            <?php if ($encuesta['comentario']): ?><div style="font-size:.82rem;color:var(--texto);margin-top:4px;">«<?= htmlspecialchars($encuesta['comentario']) ?>»</div><?php endif; ?>
+            <div style="font-size:.7rem;color:var(--muted);margin-top:4px;">Calificado el <?= date('d/m/Y H:i', strtotime($encuesta['fecha'])) ?></div>
+        <?php elseif ($es_solicitante): ?>
+            <form id="form-calificar">
+                <input type="hidden" name="id_ticket" value="<?= $id_ticket ?>">
+                <div style="font-size:.8rem;color:var(--muted);margin-bottom:6px;">¿Cómo fue la atención que recibiste?</div>
+                <div class="hd-estrellas">
+                    <?php for ($i = 5; $i >= 1; $i--): ?><input type="radio" name="puntuacion" id="est<?= $i ?>" value="<?= $i ?>" required><label for="est<?= $i ?>" title="<?= $i ?> de 5">★</label><?php endfor; ?>
+                </div>
+                <textarea name="comentario" class="hd-input" maxlength="500" placeholder="Comentario (opcional)" style="margin-top:8px;"></textarea>
+                <div style="margin-top:8px;"><button type="submit" class="hd-btn hd-btn-naranja hd-btn-sm"><i class="fas fa-paper-plane"></i> Enviar calificación</button></div>
+                <div id="res-calificar" style="margin-top:8px;"></div>
+            </form>
+        <?php endif; ?>
+
+        <?php if ($puede_reabrir): ?>
+            <hr style="border-color:var(--borde);margin:14px 0;">
+            <button type="button" id="btn-reabrir" class="hd-btn hd-btn-outline hd-btn-sm"><i class="fas fa-undo"></i> El problema no se resolvió: reabrir ticket</button>
+            <form id="form-reabrir" style="display:none;margin-top:10px;">
+                <input type="hidden" name="id_ticket" value="<?= $id_ticket ?>">
+                <textarea name="motivo" class="hd-input" minlength="10" maxlength="500" required placeholder="Cuéntanos qué sigue fallando (mínimo 10 caracteres)"></textarea>
+                <div style="margin-top:8px;"><button type="submit" class="hd-btn hd-btn-naranja hd-btn-sm"><i class="fas fa-redo"></i> Reabrir</button></div>
+                <div id="res-reabrir" style="margin-top:8px;"></div>
+            </form>
+            <div style="font-size:.68rem;color:var(--muted);margin-top:6px;">Puedes reabrirlo hasta <?= $dias_reabrir ?> días después de la resolución.</div>
+        <?php endif; ?>
+    </div>
+    <script>
+    $('#form-calificar').on('submit', function (e) {
+        e.preventDefault();
+        $.post('../procesos/calificar_ticket.php', $(this).serialize())
+            .done(function (r) { $('#res-calificar').html(r); if (r.includes('alert-success') || r.includes('alert-info')) setTimeout(() => location.reload(), 900); })
+            .fail(function () { $('#res-calificar').html('<div class="alert alert-danger">Error de conexión.</div>'); });
+    });
+    $('#btn-reabrir').on('click', function () { $('#form-reabrir').slideToggle(150); });
+    $('#form-reabrir').on('submit', function (e) {
+        e.preventDefault();
+        $.post('../procesos/reabrir_ticket.php', $(this).serialize())
+            .done(function (r) { $('#res-reabrir').html(r); if (r.includes('alert-success')) setTimeout(() => location.reload(), 1000); })
+            .fail(function () { $('#res-reabrir').html('<div class="alert alert-danger">Error de conexión.</div>'); });
+    });
+    </script>
     <?php endif; ?>
 
     <div class="hd-grid-detalle">
@@ -388,6 +480,11 @@ $link_volver = match($rol_id) {
                         <span class="hd-comentario-nombre"><?= htmlspecialchars($c['nombres'] . ' ' . $c['apellidos']) ?></span>
                         <span class="hd-comentario-fecha"><?= date('d/m/Y H:i', strtotime($c['fecha_comentario'])) ?></span>
                         <div class="hd-comentario-texto"><?= nl2br(htmlspecialchars($c['comentario'])) ?></div>
+                        <?php foreach ($adj_por_comentario[(int)$c['id_comentario']] ?? [] as $ac): ?>
+                        <a href="../procesos/descargar_adjunto.php?id=<?= (int)$ac['id_adjunto'] ?>" style="display:inline-flex;align-items:center;gap:6px;margin:4px 6px 0 0;padding:3px 9px;border:1px solid var(--borde);border-radius:14px;font-size:.72rem;color:var(--azul);text-decoration:none;">
+                            <i class="fas <?= adjunto_icono($ac['tipo_archivo']) ?>"></i> <?= htmlspecialchars($ac['nombre_archivo']) ?>
+                        </a>
+                        <?php endforeach; ?>
                     </div>
                 </div>
                 <?php endwhile; ?>
@@ -396,6 +493,13 @@ $link_volver = match($rol_id) {
             <form id="form-comentario">
                 <input type="hidden" name="id_ticket" value="<?= $id_ticket ?>">
                 <textarea name="comentario" id="nuevo-comentario" class="hd-input" maxlength="1000" placeholder="Escribe un comentario..." required></textarea>
+                <div style="margin-top:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                    <label class="hd-btn hd-btn-outline hd-btn-sm" style="cursor:pointer;margin:0;">
+                        <i class="fas fa-paperclip"></i> Adjuntar archivos
+                        <input type="file" name="adjuntos[]" id="coment-adj" multiple hidden>
+                    </label>
+                    <span id="coment-adj-info" style="font-size:.72rem;color:var(--muted);">Hasta <?= ADJUNTOS_MAX_POR_COMENTARIO ?> archivos de <?= formato_bytes(adjuntos_limite_por_archivo()) ?> (no se admiten <?= adjuntos_extensiones_bloqueadas_texto() ?>)</span>
+                </div>
                 <div id="resultado-comentario" style="margin-top:8px;"></div>
                 <div style="margin-top:8px;text-align:right;">
                     <button type="submit" class="hd-btn hd-btn-naranja hd-btn-sm"><i class="fas fa-paper-plane"></i> Comentar</button>
@@ -468,6 +572,12 @@ $('#form-asignar').on('submit', function(e) {
     });
 });
 
+$('#coment-adj').on('change', function () {
+    const n = this.files.length;
+    if (n > <?= ADJUNTOS_MAX_POR_COMENTARIO ?>) { alert('Máximo <?= ADJUNTOS_MAX_POR_COMENTARIO ?> archivos por comentario.'); this.value = ''; $('#coment-adj-info').text(''); return; }
+    $('#coment-adj-info').text(n ? Array.from(this.files).map(f => f.name).join(', ') : '');
+});
+
 $('#form-comentario').on('submit', function(e) {
     e.preventDefault();
     const resultado = $('#resultado-comentario');
@@ -475,7 +585,9 @@ $('#form-comentario').on('submit', function(e) {
     $.ajax({
         url: '../procesos/comentar_ticket.php',
         type: 'POST',
-        data: $(this).serialize(),
+        data: new FormData(this),      // FormData para que viajen los archivos
+        processData: false,
+        contentType: false,
         success: function(r) {
             resultado.html(r);
             if (r.includes('alert-success')) setTimeout(() => location.reload(), 800);

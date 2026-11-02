@@ -1,7 +1,9 @@
 <?php
 session_start();
+require_once __DIR__ . '/../includes/csrf.php'; csrf_verificar(); /* csrf */
 require_once '../includes/functions.php';
 include '../config/conexion.php';
+require_once __DIR__ . '/../includes/bitacora.php';
 
 header('Content-Type: text/html; charset=utf-8');
 
@@ -22,9 +24,12 @@ if ($id_categoria <= 0 || $nombre === '') {
 }
 
 try {
+    $antes = bitacora_fila($conexion, 'categoria_incidencias', 'id_categoria', $id_categoria);
     $stmt = $conexion->prepare("UPDATE categoria_incidencias SET nombre = ?, descripcion = ?, id_prioridad_default = ? WHERE id_categoria = ?");
     $stmt->bind_param("ssii", $nombre, $descripcion, $id_prioridad_default, $id_categoria);
     $stmt->execute();
+    registrar_bitacora($conexion, 'UPDATE', 'categoria_incidencias', $id_categoria, "Editó la categoría $nombre", $antes,
+        ['nombre'=>$nombre, 'descripcion'=>$descripcion, 'id_prioridad_default'=>$id_prioridad_default]);
     echo "<div class='alert alert-success'><i class='fas fa-check-circle me-2'></i>Categoría actualizada correctamente.</div>";
 } catch (mysqli_sql_exception $e) {
     if ($e->getCode() === 1062) {

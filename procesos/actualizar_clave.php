@@ -1,5 +1,6 @@
 <?php
 include('../config/conexion.php');
+require_once __DIR__ . '/../includes/bitacora.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') exit();
 
@@ -25,7 +26,8 @@ $stmt = $conexion->prepare("
     FROM recuperaciones r
     WHERE r.token = ?
 ");
-$stmt->bind_param("s", $token);
+$token_hash = hash('sha256', $token);   // en la BD el token se guarda con hash
+$stmt->bind_param("s", $token_hash);
 $stmt->execute();
 $datos = $stmt->get_result()->fetch_assoc();
 $stmt->close();
@@ -46,6 +48,14 @@ $upd = $conexion->prepare("UPDATE usuarios SET contraseña = ? WHERE id_usuario 
 $upd->bind_param("si", $hash, $datos['id_usuario']);
 $upd->execute();
 $upd->close();
+
+registrar_bitacora($conexion, 'UPDATE', 'usuarios', $datos['id_usuario'], 'Restableció su contraseña mediante enlace de recuperación');
+
+// Cualquier otro enlace pendiente de esta cuenta queda inservible
+$otros = $conexion->prepare("UPDATE recuperaciones SET usado = 1 WHERE id_usuario = ?");
+$otros->bind_param("i", $datos['id_usuario']);
+$otros->execute();
+$otros->close();
 
 // Marcar token como usado
 $used = $conexion->prepare("UPDATE recuperaciones SET usado = 1 WHERE id = ?");

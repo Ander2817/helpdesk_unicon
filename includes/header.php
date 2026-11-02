@@ -28,6 +28,14 @@ $rol_nombre = match($rol_id) {
     default => 'Desconocido'
 };
 
+// El nombre visible sale de la tabla roles (se puede renombrar desde Admin → Roles)
+try {
+    $q_rn = $conexion->prepare("SELECT nombre FROM roles WHERE id_rol = ?");
+    $q_rn->bind_param("i", $rol_id); $q_rn->execute();
+    if ($f_rn = $q_rn->get_result()->fetch_assoc()) $rol_nombre = $f_rn['nombre'];
+    $q_rn->close();
+} catch (Throwable $e) { /* se queda el nombre por defecto */ }
+
 // Inicial para avatar
 $inicial = strtoupper(substr($usuario_activo, 0, 1));
 ?>

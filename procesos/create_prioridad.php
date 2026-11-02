@@ -1,7 +1,9 @@
 <?php
 session_start();
+require_once __DIR__ . '/../includes/csrf.php'; csrf_verificar(); /* csrf */
 require_once '../includes/functions.php';
 include '../config/conexion.php';
+require_once __DIR__ . '/../includes/bitacora.php';
 
 header('Content-Type: text/html; charset=utf-8');
 
@@ -26,6 +28,8 @@ try {
     $stmt = $conexion->prepare("INSERT INTO prioridades (nombre, nivel, tiempo_respuesta_objetivo) VALUES (?, ?, ?)");
     $stmt->bind_param("sii", $nombre, $nivel, $tiempo_total);
     $stmt->execute();
+    registrar_bitacora($conexion, 'INSERT', 'prioridades', $conexion->insert_id, "Creó la prioridad $nombre", null,
+        ['nombre'=>$nombre, 'nivel'=>$nivel, 'tiempo_respuesta_objetivo'=>$tiempo_total]);
     echo "<div class='alert alert-success'><i class='fas fa-check-circle me-2'></i>Prioridad creada correctamente.</div>";
 } catch (mysqli_sql_exception $e) {
     if ($e->getCode() === 1062) {

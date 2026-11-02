@@ -1,7 +1,9 @@
 <?php
 session_start();
+require_once __DIR__ . '/../includes/csrf.php'; csrf_verificar(); /* csrf */
 require_once '../includes/functions.php';
 include '../config/conexion.php';
+require_once __DIR__ . '/../includes/bitacora.php';
 
 header('Content-Type: text/html; charset=utf-8');
 
@@ -24,9 +26,12 @@ if ($id_prioridad <= 0 || $nombre === '' || $nivel < 1 || $tiempo_total <= 0) {
 }
 
 try {
+    $antes = bitacora_fila($conexion, 'prioridades', 'id_prioridad', $id_prioridad);
     $stmt = $conexion->prepare("UPDATE prioridades SET nombre = ?, nivel = ?, tiempo_respuesta_objetivo = ? WHERE id_prioridad = ?");
     $stmt->bind_param("siii", $nombre, $nivel, $tiempo_total, $id_prioridad);
     $stmt->execute();
+    registrar_bitacora($conexion, 'UPDATE', 'prioridades', $id_prioridad, "Editó la prioridad $nombre", $antes,
+        ['nombre'=>$nombre, 'nivel'=>$nivel, 'tiempo_respuesta_objetivo'=>$tiempo_total]);
     echo "<div class='alert alert-success'><i class='fas fa-check-circle me-2'></i>Prioridad actualizada correctamente.</div>";
 } catch (mysqli_sql_exception $e) {
     if ($e->getCode() === 1062) {

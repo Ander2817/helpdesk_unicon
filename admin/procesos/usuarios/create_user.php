@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once __DIR__ . '/../../../includes/csrf.php'; csrf_verificar(); /* csrf */
 if (!isset($_SESSION['usser']) || $_SESSION['id_rol'] != 3) {
     die('<div class="alert alert-danger"><i class="fas fa-times-circle me-2"></i>Acceso denegado.</div>');
 }
@@ -58,7 +59,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $insert_stmt->bind_param("ssssssiis", $name, $last_name, $email, $user, $password_hash, $phone_number, $depto, $rol, $status);
 
     if ($insert_stmt->execute()) {
-        // CORRECCIÓN 2: Asegúrate de colocar el ID exacto de tu formulario HTML aquí (ej: #form-crear o #FormularioCrear)
+        
+        require_once('../../../includes/bitacora.php');
+        registrar_bitacora($conexion, 'INSERT', 'usuarios', $conexion->insert_id,
+        "Creó al usuario $user", null,
+        ['nombres'=>$name,'apellidos'=>$last_name,'correo'=>$email,'usuario_login'=>$user,'id_rol'=>$rol,'id_departamento'=>$depto,'estado'=>$status]);
+
         echo '<div class="alert alert-success d-flex align-items-center" role="alert">
                 <i class="fas fa-check-circle me-2"></i>
                 <div>¡Usuario registrado exitosamente con contraseña segura!</div>

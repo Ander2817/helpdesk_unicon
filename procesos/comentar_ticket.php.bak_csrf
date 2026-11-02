@@ -1,0 +1,95 @@
+<?php
+session_start();
+require_once '../includes/functions.php';
+include '../config/conexion.php';
+require_once __DIR__ . '/../includes/bitacora.php';
+require_once __DIR__ . '/../includes/notificaciones.php';
+require_once __DIR__ . '/../includes/adjuntos_comentario.php';
+
+header('Content-Type: text/html; charset=utf-8');
+
+// Si los archivos pesan más que post_max_size, PHP descarta todo el formulario: se avisa claro
+if (empty($_POST) && (int)($_SERVER['CONTENT_LENGTH'] ?? 0) > 0) {
+    die("<div class='alert alert-warning'>Los archivos pesan demasiado en total (máximo " . htmlspecialchars((string)ini_get('post_max_size')) . "). Quita alguno e inténtalo de nuevo.</div>");
+}
+
+if (!isset($_SESSION['usser'])) {
+    http_response_code(403);
+    echo "<div class='alert alert-danger'>No autorizado.</div>";
+    exit();
+}
+
+$id_ticket  = (int)($_POST['id_ticket'] ?? 0);
+$comentario = limpiar_inputs($_POST['comentario'] ?? '');
+
+if ($id_ticket <= 0 || $comentario === '') {
+    echo "<div class='alert alert-danger'>Escribe un comentario válido.</div>";
+    exit();
+}
+if (mb_strlen($comentario) > 1000) {
+    echo "<div class='alert alert-danger'>El comentario no puede superar 1000 caracteres.</div>";
+    exit();
+}
+
+$stmt_yo = $conexion->prepare("SELECT id_usuario FROM usuarios WHERE usuario_login = ?");
+$stmt_yo->bind_param("s", $_SESSION['usser']);
+$stmt_yo->execute();
+$yo = $stmt_yo->get_result()->fetch_assoc();
+$stmt_yo->close();
+if (!$yo) {
+    echo "<div class='alert alert-danger'>No se pudo identificar al usuario.</div>";
+    exit();
+}
+$id_usuario = (int)$yo['id_usuario'];
+
+$stmt_t = $conexion->prepare("SELECT id_usuario_solicitante, id_usuario_asignado FROM tickets WHERE id_tickets = ?");
+$stmt_t->bind_param("i", $id_ticket);
+$stmt_t->execute();
+$t = $stmt_t->get_result()->fetch_assoc();
+$stmt_t->close();
+if (!$t) {
+    echo "<div class='alert alert-danger'>El ticket no existe.</div>";
+    exit();
+}
+
+$rol_id = (int)($_SESSION['id_rol'] ?? 0);
+$autorizado = ($rol_id === 3)
+    || ((int)$t['id_usuario_solicitante'] === $id_usuario)
+    || ((int)$t['id_usuario_asignado'] === $id_usuario);
+if (!$autorizado) {
+    http_response_code(403);
+    echo "<div class='alert alert-danger'>No tienes permiso para comentar en este ticket.</div>";
+    exit();
+}
+
+// Archivos (opcionales)
+$adjuntos = adjuntos_normalizar($_FILES['adjuntos'] ?? null);
+$errores = adjuntos_comentario_validar($adjuntos);
+if ($errores) {
+    $items = '';
+    foreach ($errores as $e) $items .= '<li>' . htmlspecialchars($e) . '</li>';
+    die('<div class="alert alert-warning">Revisa los archivos adjuntos:<ul class="mb-0 mt-1">' . $items . '</ul></div>');
+}
+
+$escritos = [];
+$conexion->begin_transaction();
+try {
+    $stmt = $conexion->prepare("INSERT INTO comentarios (id_ticket, id_usuario, comentario) VALUES (?, ?, ?)");
+    $stmt->bind_param("iis", $id_ticket, $id_usuario, $comentario);
+    $stmt->execute();
+    $id_comentario = (int)$conexion->insert_id;
+    adjuntos_guardar_comentario($conexion, $id_ticket, $id_comentario, $adjuntos, $escritos);
+    $conexion->commit();
+} catch (Throwable $e) {
+    $conexion->rollback();
+    foreach ($escritos as $f) @unlink($f);
+    error_log('[comentar_ticket] ' . $e->getMessage());
+    die("<div class='alert alert-danger'>No se pudo guardar el comentario. Inténtalo de nuevo.</div>");
+}
+
+registrar_bitacora($conexion, 'INSERT', 'comentarios', $id_comentario, "Comentó en el ticket #$id_ticket" . ($adjuntos ? ' (con ' . count($adjuntos) . ' archivo(s))' : ''), null,
+    ['id_ticket' => $id_ticket, 'comentario' => mb_substr($comentario, 0, 300), 'adjuntos' => count($adjuntos)]);
+
+noti_evento_comentario($conexion, $id_ticket, $id_usuario, $comentario);
+
+echo "<div class='alert alert-success'><i class='fas fa-check-circle me-2'></i>Comentario agregado.</div>";
