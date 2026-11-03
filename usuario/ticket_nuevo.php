@@ -15,10 +15,11 @@ $categorias = $conexion->query("
 ");
 // Equipos activos del departamento del usuario (consulta preparada: el login nunca se pega al SQL)
 $stmt_inv = $conexion->prepare("
-    SELECT i.id_inventario, i.codigo_equipo, i.tipo_equipo, i.marca, i.modelo
+    SELECT i.id_inventario, i.codigo_equipo, i.tipo_equipo, i.marca, i.modelo, (i.id_departamento = u.id_departamento) AS propio
     FROM inventario_tecnologico i
-    INNER JOIN usuarios u ON i.id_departamento = u.id_departamento
-    WHERE u.usuario_login = ? AND i.estado = 'activo'
+    JOIN usuarios u ON u.usuario_login = ?
+    WHERE i.estado = 'activo'
+    ORDER BY propio DESC, i.codigo_equipo
 ");
 $stmt_inv->bind_param("s", $_SESSION['usser']);
 $stmt_inv->execute();
@@ -196,6 +197,7 @@ $inventario = $stmt_inv->get_result();
                                 <?= htmlspecialchars($eq['tipo_equipo']) ?> —
                                 <?= htmlspecialchars($eq['marca']) ?>
                                 <?= htmlspecialchars($eq['modelo']) ?>
+                                <?= empty($eq['propio']) ? ' · (otro departamento)' : '' ?>
                             </option>
                             <?php endwhile; ?>
                         </select>
@@ -325,5 +327,6 @@ $('#form-ticket').on('submit', function(e) {
     });
 });
 </script>
+<script src="<?= URL_BASE ?>assets/js/ia_widget.js" data-rol="<?= (int)$_SESSION['id_rol'] ?>" data-url="<?= URL_BASE ?>procesos/ia_asistente.php" defer></script>
 </body>
 </html>

@@ -41,6 +41,7 @@ if ($accion === 'leer_todas') {
 
 // ---- lista ----
 if (function_exists('sla_revisar_vencidos')) sla_revisar_vencidos($conexion);   // como mucho una vez cada 10 min: avisa de tickets por vencer / vencidos
+if (is_file(__DIR__ . '/../includes/tareas_programadas.php')) { require_once __DIR__ . '/../includes/tareas_programadas.php'; tareas_ejecutar($conexion); }   // autocierre y avisos de mantenimiento (cada 15 min)
 function hace(int $ts): string {
     $d = time() - $ts;
     if ($d < 60)     return 'hace un momento';

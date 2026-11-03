@@ -129,6 +129,7 @@
   x.onclick = () => box.classList.remove('open');
   big.onclick = () => box.classList.toggle('grande');
   form.onsubmit = e => { e.preventDefault(); enviar(inp.value); };
+  window.iaAsistente = {abrir: () => { box.classList.add('open'); inp.focus(); }, preguntar: t => { box.classList.add('open'); enviar(t); }};   // lo usan otras pantallas (p. ej. «Resumen semanal con IA»)
 
   // ---- botones dentro de la página de un ticket (técnico y admin)
   const params = new URLSearchParams(location.search), idT = parseInt(params.get('id'), 10) || 0;

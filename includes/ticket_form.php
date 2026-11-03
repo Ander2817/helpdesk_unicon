@@ -39,10 +39,11 @@ $categorias = $conexion->query("
 
 // Equipos activos del departamento de quien crea el ticket
 $stmt_inv = $conexion->prepare("
-    SELECT i.id_inventario, i.codigo_equipo, i.tipo_equipo, i.marca, i.modelo
+    SELECT i.id_inventario, i.codigo_equipo, i.tipo_equipo, i.marca, i.modelo, (i.id_departamento = u.id_departamento) AS propio
     FROM inventario_tecnologico i
-    INNER JOIN usuarios u ON i.id_departamento = u.id_departamento
-    WHERE u.usuario_login = ? AND i.estado = 'activo'
+    JOIN usuarios u ON u.usuario_login = ?
+    WHERE i.estado = 'activo'
+    ORDER BY propio DESC, i.codigo_equipo
 ");
 $stmt_inv->bind_param("s", $usuario_activo);
 $stmt_inv->execute();
@@ -200,6 +201,7 @@ $inventario = $stmt_inv->get_result();
                                 <?= htmlspecialchars($eq['tipo_equipo']) ?> —
                                 <?= htmlspecialchars($eq['marca']) ?>
                                 <?= htmlspecialchars($eq['modelo']) ?>
+                                <?= empty($eq['propio']) ? ' · (otro departamento)' : '' ?>
                             </option>
                             <?php endwhile; ?>
                         </select>
@@ -285,10 +287,14 @@ function pintarEquipos() {
     const eq = document.getElementById('select-inventario');
     eq.textContent = '';
     const o0 = document.createElement('option'); o0.value = ''; o0.textContent = 'Selecciona el equipo...'; eq.appendChild(o0);
-    EQUIPOS.filter(e => parseInt(e.id_departamento, 10) === depto).forEach(function (e) {
-        const o = document.createElement('option'); o.value = e.id_inventario;
-        o.textContent = e.codigo_equipo + ' — ' + e.tipo_equipo + ' ' + (e.marca || '') + ' ' + (e.modelo || '');
-        eq.appendChild(o);
+    // primero los equipos del departamento del solicitante; después los demás (marcados), por si el equipo está en otro departamento
+    const propios = EQUIPOS.filter(e => parseInt(e.id_departamento, 10) === depto), otros = EQUIPOS.filter(e => parseInt(e.id_departamento, 10) !== depto);
+    [[propios, ''], [otros, ' · (otro departamento)']].forEach(function (par) {
+        par[0].forEach(function (e) {
+            const o = document.createElement('option'); o.value = e.id_inventario;
+            o.textContent = e.codigo_equipo + ' — ' + e.tipo_equipo + ' ' + (e.marca || '') + ' ' + (e.modelo || '') + par[1];
+            eq.appendChild(o);
+        });
     });
 }
 document.addEventListener('DOMContentLoaded', function () {

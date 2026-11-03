@@ -161,6 +161,12 @@ if ($rol_id == ROL_ADMIN) {
         <a href="reportes.php" class="hd-sidebar-link <?= $pagina_actual=='reportes.php'?'active':'' ?>">
             <i class="fas fa-chart-bar"></i> Reportes
         </a>
+        <a href="satisfaccion.php" class="hd-sidebar-link <?= $pagina_actual=='satisfaccion.php'?'active':'' ?>">
+            <i class="fas fa-star"></i> Satisfacción
+        </a>
+        <a href="estado_sistema.php" class="hd-sidebar-link <?= $pagina_actual=='estado_sistema.php'?'active':'' ?>">
+            <i class="fas fa-heartbeat"></i> Estado del sistema
+        </a>
         <a href="kb.php" class="hd-sidebar-link <?= $pagina_actual=='kb.php'?'active':'' ?>">
             <i class="fas fa-book-open"></i> Base de conocimiento
         </a>
