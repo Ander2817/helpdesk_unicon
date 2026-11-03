@@ -167,6 +167,19 @@ if ($rol_id == ROL_ADMIN) {
         <a href="estado_sistema.php" class="hd-sidebar-link <?= $pagina_actual=='estado_sistema.php'?'active':'' ?>">
             <i class="fas fa-heartbeat"></i> Estado del sistema
         </a>
+        <?php /* m11-admin */ ?>
+        <a href="reportes_gestion.php" class="hd-sidebar-link <?= $pagina_actual=='reportes_gestion.php'?'active':'' ?>">
+            <i class="fas fa-chart-line"></i> Reporte de gestión
+        </a>
+        <a href="calendario_mantenimientos.php" class="hd-sidebar-link <?= $pagina_actual=='calendario_mantenimientos.php'?'active':'' ?>">
+            <i class="fas fa-calendar-days"></i> Calendario mantenimientos
+        </a>
+        <a href="qr_equipos.php" class="hd-sidebar-link <?= $pagina_actual=='qr_equipos.php'?'active':'' ?>">
+            <i class="fas fa-qrcode"></i> Etiquetas QR
+        </a>
+        <a href="gestion_estados.php" class="hd-sidebar-link <?= $pagina_actual=='gestion_estados.php'?'active':'' ?>">
+            <i class="fas fa-toggle-on"></i> Gestión de estados
+        </a>
         <a href="kb.php" class="hd-sidebar-link <?= $pagina_actual=='kb.php'?'active':'' ?>">
             <i class="fas fa-book-open"></i> Base de conocimiento
         </a>
@@ -224,6 +237,10 @@ if ($rol_id == ROL_ADMIN) {
         <?php if (rol_tiene_permiso($conexion, ROL_TECNICO, 'inventario.ver')): ?>
         <a href="inventario.php" class="hd-sidebar-link <?= $pagina_actual=='inventario.php'?'active':'' ?>">
             <i class="fas fa-server"></i> Inventario TI
+        </a>
+        <?php /* m11-tec */ ?>
+        <a href="calendario_mantenimientos.php" class="hd-sidebar-link <?= $pagina_actual=='calendario_mantenimientos.php'?'active':'' ?>">
+            <i class="fas fa-calendar-days"></i> Calendario mantenimientos
         </a>
         <?php endif; ?>
         <a href="kb.php" class="hd-sidebar-link <?= $pagina_actual=='kb.php'?'active':'' ?>">

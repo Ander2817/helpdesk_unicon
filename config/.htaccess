@@ -1,8 +1,2 @@
-# Nadie debe leer estos archivos por URL
-<IfModule mod_authz_core.c>
-    Require all denied
-</IfModule>
-<IfModule !mod_authz_core.c>
-    Order allow,deny
-    Deny from all
-</IfModule>
+# Carpeta interna: no accesible desde el navegador (PHP la sigue usando con require/include)
+Require all denied

@@ -1,0 +1,48 @@
+# HelpDesk Unicon — endurecimiento (módulo 11). Requiere mod_headers (activo por defecto en XAMPP).
+Options -Indexes
+ServerSignature Off
+
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+    # Si algún día se usa HTTPS, descomente:
+    # Header always set Strict-Transport-Security "max-age=31536000"
+</IfModule>
+
+# Cookie de sesión: no accesible desde JavaScript y no se envía desde otros sitios
+<IfModule mod_php.c>
+    php_value session.cookie_httponly 1
+    php_value session.use_strict_mode 1
+    php_value session.cookie_samesite Lax
+    php_flag expose_php off
+    php_flag display_errors off
+</IfModule>
+<IfModule mod_php7.c>
+    php_value session.cookie_httponly 1
+    php_value session.use_strict_mode 1
+    php_value session.cookie_samesite Lax
+    php_flag expose_php off
+    php_flag display_errors off
+</IfModule>
+<IfModule mod_php8.c>
+    php_value session.cookie_httponly 1
+    php_value session.use_strict_mode 1
+    php_value session.cookie_samesite Lax
+    php_flag expose_php off
+    php_flag display_errors off
+</IfModule>
+
+# Páginas de error propias
+ErrorDocument 403 /helpdesk_unicon/error.php?c=403
+ErrorDocument 404 /helpdesk_unicon/error.php?c=404
+ErrorDocument 500 /helpdesk_unicon/error.php?c=500
+
+# Archivos que nunca deben abrirse desde el navegador
+<FilesMatch "(^hash\.php$|\.(sql|bak[0-9]*|md|log|lock|example|ejemplo\.php)$)">
+    Require all denied
+</FilesMatch>
+<FilesMatch "^(composer\.json|composer\.lock|\.gitignore)$">
+    Require all denied
+</FilesMatch>

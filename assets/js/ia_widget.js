@@ -5,13 +5,13 @@
   const NOMBRE = {1: 'usuario', 2: 'tecnico', 3: 'admin'}[ROL];
   const SALUDO = {
     usuario: '¡Hola! Cuéntame qué problema tienes y te digo qué puede ser y qué puedes probar antes de crear el ticket.',
-    tecnico: 'Hola. Pregúntame por un fallo, comando o procedimiento. En un ticket puedo darte diagnóstico, redactar la solución o resumirlo.',
-    admin: 'Hola. Pregúntame por reportes: tickets de la semana, SLA vencidos, carga por técnico, categorías y equipos con más fallas.'
+    tecnico: 'Hola. Pregúntame por un fallo, comando o procedimiento, o cómo usar el sistema. En un ticket puedo darte diagnóstico, redactar la solución o resumirlo.',
+    admin: 'Hola. Pregúntame por cifras (tickets de la semana, SLA, carga por técnico, equipos con más fallas) o por cómo hacer algo en el sistema (usuarios, estados, reportes, QR).'
   }[NOMBRE];
   const RAPIDAS = {
-    usuario: ['Mi computadora está muy lenta', 'No tengo internet', 'No puedo imprimir'],
-    tecnico: ['Impresora en red no imprime', 'PC no enciende', 'Usuario sin acceso a carpeta compartida'],
-    admin: ['Resumen de la semana', 'SLA vencidos y en riesgo', '¿Quién tiene más carga?', 'Equipos con más fallas este mes']
+    usuario: ['Mi computadora está muy lenta', 'No tengo internet', '¿Cómo creo un ticket?', '¿Qué significa Pendiente?'],
+    tecnico: ['Impresora en red no imprime', '¿Cómo funciona la pausa del SLA?', 'Usuario sin acceso a carpeta compartida', '¿Cómo registro un mantenimiento?'],
+    admin: ['Resumen de la semana', 'SLA vencidos y en riesgo', '¿Quién tiene más carga?', '¿Cómo desactivo un usuario?', '¿Cómo imprimo las etiquetas QR?']
   }[NOMBRE];
   const accionChat = ROL === 3 ? 'admin_chat' : 'chat';
   let hist = [], ocupado = false;

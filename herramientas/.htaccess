@@ -1,0 +1,2 @@
+# Carpeta interna: no accesible desde el navegador (PHP la sigue usando con require/include)
+Require all denied

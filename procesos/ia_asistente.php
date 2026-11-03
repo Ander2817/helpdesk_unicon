@@ -11,6 +11,7 @@ require_once '../includes/csrf.php';
 csrf_verificar();
 include '../config/conexion.php';
 require_once '../includes/ia.php';
+require_once '../includes/ia_conocimiento.php';
 
 $rol = (int)$_SESSION['id_rol']; $uid = (int)$_SESSION['id_usuario'];
 session_write_close();
@@ -38,7 +39,7 @@ if (is_array($h)) foreach (array_slice($h, -6) as $x)
     if (is_array($x) && in_array($x['r'] ?? '', ['u', 'a'], true) && is_string($x['t'] ?? null)) $hist[] = ['r' => $x['r'], 't' => ia_sanear($x['t'], 800)];
 
 $cats = ia_categorias($conexion);
-$contexto = ''; $kb = []; $sim = []; $catId = null; $catNom = null; $textoLocal = '';
+$contexto = ''; $kb = []; $sim = []; $guia = []; $catId = null; $catNom = null; $textoLocal = '';
 
 try {
     if ($esTicket) {
@@ -53,10 +54,14 @@ try {
     } elseif ($accion === 'admin_chat') {
         $S = ia_snapshot($conexion, ia_dias_de_pregunta($mensaje));
         $contexto = ia_snapshot_texto($S); $textoLocal = $contexto;
+        $guia = ia_guia($rol, $mensaje);
+        if ($guia) $textoLocal = ia_guia_texto($guia) . "\n\n" . $textoLocal;
     } else {
         $kb = ia_kb($conexion, $mensaje); $sim = ($rol === ROL_USUARIO) ? [] : ia_similares($conexion, $mensaje, 3);
         if ($rol === ROL_USUARIO) $sim = ia_similares($conexion, $mensaje, 2); // para el usuario solo se usa en el modo local; no se muestran datos de personas
+        $guia = ia_guia($rol, $mensaje);
         $textoLocal = ia_local_ayuda($kb, $sim, $carpeta);
+        if ($guia) $textoLocal = (($kb || $sim) ? ia_guia_texto($guia) . "\n\n" . $textoLocal : ia_guia_texto($guia));
         if ($accion === 'ayuda_ticket' && $cats) $contexto = 'Categorías disponibles: ' . implode(', ', array_column($cats, 'nombre'));
     }
 } catch (Throwable $e) {
@@ -67,6 +72,7 @@ try {
 // bloque de datos para el modelo
 $ctx = [];
 if ($contexto) $ctx[] = $contexto;
+if ($guia) $ctx[] = "Guía del sistema:\n" . ia_guia_texto($guia);
 if ($kb)  $ctx[] = "Artículos de la base de conocimiento:\n" . implode("\n", array_map(fn($a) => '- ' . $a['titulo'] . ': ' . $a['texto'], $kb));
 if ($sim && $rol !== ROL_USUARIO) $ctx[] = "Casos resueltos anteriormente:\n" . implode("\n", array_map(fn($s) => '- ' . $s['asunto'] . ' → ' . $s['solucion'], $sim));
 $pregunta = $esTicket ? ['ticket_diagnostico' => 'Dame el diagnóstico de este ticket.', 'ticket_solucion' => 'Redacta la solución para este ticket.',

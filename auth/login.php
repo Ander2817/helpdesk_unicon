@@ -7,6 +7,7 @@ session_start();
 require_once('../config/conexion.php');
 require_once('../includes/constants.php');
 require_once('../includes/functions.php');
+require_once('../includes/estados.php');
 require_once('../includes/bitacora.php');
 require_once('../includes/login_guard.php');
 
@@ -50,7 +51,7 @@ if (!$ok) {
     redirigir('../index.php');
 }
 
-if (in_array($row['estado'], ['inactivo', 'suspendido'], true)) {
+if (estado_bloquea_login($conexion, $row['estado'])) {
     set_alerta_flash('danger', 'Tu cuenta está ' . $row['estado'] . '. Contacta al administrador.');
     redirigir('../index.php');
 }

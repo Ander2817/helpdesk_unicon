@@ -1,47 +1,28 @@
 <?php
+// Borrado LÓGICO: el usuario no se elimina de la BD (conserva tickets, historial y bitácora); pasa a estado 'inactivo'.
 session_start();
-require_once __DIR__ . '/../../../includes/csrf.php'; csrf_verificar(); /* csrf */
-if (!isset($_SESSION['usser']) || $_SESSION['id_rol'] != 3) {
-    die('Acceso denegado de forma segura.');
-}
-
+if (!isset($_SESSION['usser']) || $_SESSION['id_rol'] != 3) { die('Acceso denegado de forma segura.'); }
+if (is_file('../../../includes/csrf.php')) { require_once '../../../includes/csrf.php'; if (function_exists('csrf_verificar')) csrf_verificar(); }
 include('../../../config/conexion.php');
-require_once __DIR__ . '/../../../includes/bitacora.php';
+if (is_file('../../../includes/bitacora.php')) require_once '../../../includes/bitacora.php';
 
-if (isset($_POST['id'])) {
-    $id_usuario = (int)$_POST['id'];
+if (!isset($_POST['id'])) { echo 'No se recibió ningún identificador de usuario válido.'; exit(); }
+$id = (int)$_POST['id'];
+if (isset($_SESSION['id_usuario']) && $id === (int)$_SESSION['id_usuario']) { echo 'No puedes desactivar tu propia cuenta de administrador.'; exit(); }
 
-    // Evitar que el administrador se elimine a sí mismo
-    if (isset($_SESSION['id_usuario']) && $id_usuario === (int)$_SESSION['id_usuario']) {
-        die('No puedes eliminar tu propia cuenta de administrador.');
-    }
-
-    $antes = bitacora_fila($conexion, 'usuarios', 'id_usuario', $id_usuario);
-    $stmt = $conexion->prepare("DELETE FROM usuarios WHERE id_usuario = ?");
-    
-    if ($stmt === false) {
-        die('Error al preparar la consulta: ' . $conexion->error);
-    }
-
-    $stmt->bind_param("i", $id_usuario);
-
-    if ($stmt->execute()) {
-        registrar_bitacora($conexion, 'DELETE', 'usuarios', $id_usuario, 'Eliminó al usuario ' . ($antes['usuario_login'] ?? "#$id_usuario"), $antes, null);
-        echo 'success';
-    } else {
-        // Código de error 1451: Restricción de clave foránea (Tiene tickets, inventario, etc.)
-        if ($conexion->errno == 1451) {
-            echo 'No se puede eliminar el usuario porque posee registros asociados en el sistema (Tickets, Inventario o historial activo). Se recomienda cambiar su estado a "Inactivo".';
-        } else {
-            echo 'Error en la Base de Datos: ' . htmlspecialchars($stmt->error);
-        }
-    }
-
-    $stmt->close();
-} else {
-    echo 'No se recibió ningún identificador de usuario válido.';
+$q = $conexion->prepare("SELECT id_rol, estado, CONCAT(nombres,' ',apellidos) n FROM usuarios WHERE id_usuario = ?");
+$q->bind_param("i", $id); $q->execute(); $u = $q->get_result()->fetch_assoc(); $q->close();
+if (!$u) { echo 'El usuario no existe.'; exit(); }
+if ((int)$u['id_rol'] === 3 && $u['estado'] === 'activo') {
+    $n = (int)$conexion->query("SELECT COUNT(*) FROM usuarios WHERE id_rol = 3 AND estado = 'activo' AND id_usuario <> $id")->fetch_row()[0];
+    if ($n < 1) { echo 'Debe quedar al menos un administrador activo.'; exit(); }
 }
+if ($u['estado'] === 'inactivo') { echo 'success'; exit(); }
 
-$conexion->close();
-exit();
-?>
+$s = $conexion->prepare("UPDATE usuarios SET estado = 'inactivo' WHERE id_usuario = ?");
+$s->bind_param("i", $id);
+if ($s->execute()) {
+    if (function_exists('registrar_bitacora')) { try { registrar_bitacora($conexion, 'DESACTIVAR', 'usuarios', $id, "Usuario {$u['n']} desactivado (borrado lógico)", ['estado' => $u['estado']], ['estado' => 'inactivo']); } catch (Throwable $e) {} }
+    echo 'success';
+} else { echo 'Error en la Base de Datos: ' . htmlspecialchars($s->error); }
+$s->close(); $conexion->close(); exit();

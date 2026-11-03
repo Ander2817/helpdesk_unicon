@@ -525,18 +525,18 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-// Lógica de eliminación usando SweetAlert2
+// Lógica de desactivación (borrado lógico) usando SweetAlert2
 $(document).on('click', '.btn-eliminar', function() {
     const idUsuario = $(this).data('id');
-    
+
     Swal.fire({
-        title: '¿Estás seguro?',
-        text: "Esta acción no se puede deshacer.",
+        title: '¿Desactivar este usuario?',
+        text: "No se borra: pasa a estado Inactivo, no podrá entrar y conserva su historial.",
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#E87722',
         cancelButtonColor: '#64748b',
-        confirmButtonText: 'Sí, eliminar',
+        confirmButtonText: 'Sí, desactivar',
         cancelButtonText: 'Cancelar'
     }).then((result) => {
         if (result.isConfirmed) {
@@ -545,12 +545,12 @@ $(document).on('click', '.btn-eliminar', function() {
                 type: 'POST',
                 data: { id: idUsuario },
                 success: function(response) {
-                    // delete.php responde 'success' si borró; cualquier otro texto es el motivo del error
+                    // m11-softdelete: delete.php responde 'success'; cualquier otro texto es el motivo
                     if (String(response).trim() === 'success') {
-                        Swal.fire('Eliminado', 'El usuario fue eliminado.', 'success');
-                        $(`#usuario-row-${idUsuario}`).fadeOut(400, function() { $(this).remove(); });
+                        Swal.fire({icon: 'success', title: 'Usuario desactivado', text: 'Pasó a estado Inactivo y conserva su historial.', timer: 2000, showConfirmButton: false})
+                            .then(() => location.reload());
                     } else {
-                        Swal.fire('No se pudo eliminar', String(response).replace(/<[^>]*>/g, ''), 'warning');
+                        Swal.fire('No se pudo desactivar', String(response).replace(/<[^>]*>/g, ''), 'warning');
                     }
                 },
                 error: function() {

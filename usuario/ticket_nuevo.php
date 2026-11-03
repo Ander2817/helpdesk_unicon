@@ -328,5 +328,6 @@ $('#form-ticket').on('submit', function(e) {
 });
 </script>
 <script src="<?= URL_BASE ?>assets/js/ia_widget.js" data-rol="<?= (int)$_SESSION['id_rol'] ?>" data-url="<?= URL_BASE ?>procesos/ia_asistente.php" defer></script>
+<script>/* m11-equipo */(function(){var m=location.search.match(/[?&]equipo=(\d+)/);if(!m)return;var s=document.getElementById('select-inventario');if(!s)return;s.value=m[1];if(window.jQuery)window.jQuery(s).trigger('change');})();</script>
 </body>
 </html>
