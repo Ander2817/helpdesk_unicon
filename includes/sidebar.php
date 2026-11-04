@@ -97,6 +97,10 @@ if ($rol_id == ROL_ADMIN) {
             <i class="fas fa-user-clock"></i> Sin Asignar
             <?= sb_badge($sb['sin_asignar'], 'naranja') ?>
         </a>
+        <?php /* m12-asignacion */ ?>
+        <a href="asignacion.php" class="hd-sidebar-link <?= $pagina_actual=='asignacion.php'?'active':'' ?>">
+            <i class="fas fa-user-gear"></i> Asignación de tickets
+        </a>
         <button class="hd-sidebar-link" onclick="toggleSub('sub-tickets')">
             <i class="fas fa-filter"></i> Por Estado
             <i class="fas fa-chevron-right hd-sidebar-chevron"></i>
@@ -125,11 +129,11 @@ if ($rol_id == ROL_ADMIN) {
 
     <div class="hd-sidebar-section">
         <div class="hd-sidebar-label">Administración</div>
-        <a href="procesos/usuarios.php" class="hd-sidebar-link <?= $pagina_actual=='usuarios.php'?'active':'' ?>">
+        <a href="usuarios.php" class="hd-sidebar-link <?= $pagina_actual=='usuarios.php'?'active':'' ?>">
             <i class="fas fa-users"></i> Usuarios
             <?= sb_badge($sb['usuarios']) ?>
         </a>
-        <a href="procesos/departamentos.php" class="hd-sidebar-link <?= $pagina_actual=='departamentos.php'?'active':'' ?>">
+        <a href="departamentos.php" class="hd-sidebar-link <?= $pagina_actual=='departamentos.php'?'active':'' ?>">
             <i class="fas fa-building"></i> Departamentos
         </a>
         <a href="roles.php" class="hd-sidebar-link <?= $pagina_actual=='roles.php'?'active':'' ?>">

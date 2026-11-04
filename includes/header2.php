@@ -62,6 +62,8 @@ foreach ($rol_de_carpeta as $carpeta => $rol_requerido) {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../assets/css/dashboard2.css">
+    <link rel="stylesheet" href="../assets/css/responsive.css"> <!-- m12-responsive -->
+    <script src="../assets/js/responsive.js" defer></script>
 </head>
 <body>
 
@@ -99,7 +101,7 @@ foreach ($rol_de_carpeta as $carpeta => $rol_requerido) {
         <?php endif; ?>
 
         <?php if ($rol_id == 3): ?>
-        <a href="procesos/usuarios.php" class="hd-topbar-icon" title="Usuarios">
+        <a href="usuarios.php" class="hd-topbar-icon" title="Usuarios">
             <i class="fas fa-users"></i>
         </a>
         <?php endif; ?>

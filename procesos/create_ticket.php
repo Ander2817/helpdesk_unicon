@@ -147,6 +147,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         adjuntos_guardar($conexion, $id_ticket_nuevo, $adjuntos, $archivos_escritos);
         $conexion->commit();
+        // m12-asignacion: asignación automática (si el administrador la tiene activada). Si falla, el ticket ya quedó creado.
+        try { if (is_file(__DIR__ . '/../includes/asignacion.php')) { require_once __DIR__ . '/../includes/asignacion.php'; asig_auto($conexion, (int)$id_ticket_nuevo); } } catch (Throwable $e_asig) { /* sin asignar: el admin lo verá en la cola */ }
+
 
         registrar_bitacora($conexion, 'INSERT', 'tickets', $id_ticket_nuevo, "Creó el ticket $codigo_ticket", null,
             ['codigo_ticket'=>$codigo_ticket, 'asunto'=>$asunto, 'id_categoria'=>$id_categoria, 'id_prioridad'=>$id_prioridad,

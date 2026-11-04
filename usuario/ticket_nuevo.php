@@ -25,18 +25,12 @@ $stmt_inv->bind_param("s", $_SESSION['usser']);
 $stmt_inv->execute();
 $inventario = $stmt_inv->get_result();
 ?>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nuevo Ticket — HelpDesk Unicon</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../assets/css/dashboard2.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <style>
+<?php /* m12-layout: header, menú y footer del sistema */
+require_once __DIR__ . '/../includes/header2.php';
+require_once __DIR__ . '/../includes/sidebar.php';
+?>
+<main class="hd-main">
+<style>
         body { font-family: 'Poppins', sans-serif; background: #f0f2f5; }
         .page-wrapper { max-width: 820px; margin: 0 auto; padding: 24px 20px; }
         .hd-form-group { margin-bottom: 16px; }
@@ -99,10 +93,7 @@ $inventario = $stmt_inv->get_result();
 
         textarea.hd-input { resize: vertical; min-height: 100px; }
     </style>
-<?php require_once __DIR__ . '/../includes/csrf.php'; echo csrf_script(); /* csrf-js */ ?>
-</head>
-<body>
-
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <div class="page-wrapper">
 
     <!-- HEADER -->
@@ -136,7 +127,7 @@ $inventario = $stmt_inv->get_result();
                            maxlength="200" required>
                     <div class="char-counter"><span id="cnt-asunto">0</span>/200</div>
                     <div id="kb-sugerencias"></div>
-                    <script src="../assets/js/kb_sugerir.js" data-base="<?= URL_BASE ?>"></script>
+                    
 
                 </div>
 
@@ -245,8 +236,9 @@ $inventario = $stmt_inv->get_result();
     </div>
 
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</main>
+<?php ob_start(); ?>
+<script src="../assets/js/kb_sugerir.js" data-base="<?= URL_BASE ?>"></script>
 <script>
 // Contador de caracteres
 function initCounter(inputId, counterId, max) {
@@ -329,5 +321,7 @@ $('#form-ticket').on('submit', function(e) {
 </script>
 <script src="<?= URL_BASE ?>assets/js/ia_widget.js" data-rol="<?= (int)$_SESSION['id_rol'] ?>" data-url="<?= URL_BASE ?>procesos/ia_asistente.php" defer></script>
 <script>/* m11-equipo */(function(){var m=location.search.match(/[?&]equipo=(\d+)/);if(!m)return;var s=document.getElementById('select-inventario');if(!s)return;s.value=m[1];if(window.jQuery)window.jQuery(s).trigger('change');})();</script>
-</body>
-</html>
+<?php
+$hd_extra_scripts = ob_get_clean();
+require_once __DIR__ . '/../includes/footer2.php';
+if (empty($hd_scripts_done)) echo $hd_extra_scripts;

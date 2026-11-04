@@ -1,0 +1,108 @@
+/* assets/css/responsive.css — Vista móvil/tablet de HelpDesk Unicon (módulo 12).
+   Se carga DESPUÉS de dashboard2.css. Solo actúa en pantallas pequeñas; en escritorio no cambia nada. */
+
+/* El botón de menú solo existe en pantallas chicas */
+.hd-burger { display: none; }
+.hd-backdrop { display: none; }
+
+/* Nada debe ensanchar la página */
+img, video, canvas, svg { max-width: 100%; }
+.hd-main { min-width: 0; }
+.hd-content { min-width: 0; }
+
+@media (max-width: 900px) {
+    :root { --sidebar-w: 0px; }
+
+    /* --- Menú lateral deslizable con botón ☰ --- */
+    .hd-burger {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 38px; height: 38px; border: 0; border-radius: 8px; flex-shrink: 0;
+        background: rgba(255,255,255,0.10); color: #fff; font-size: 1.05rem; cursor: pointer;
+    }
+    .hd-burger:active { background: rgba(255,255,255,0.2); }
+    .hd-sidebar { transform: translateX(-105%); width: min(280px, 82vw); transition: transform .25s ease; box-shadow: none; z-index: 400; }
+    .hd-sidebar.open { transform: translateX(0); box-shadow: 6px 0 24px rgba(0,0,0,.35); }
+    .hd-backdrop { position: fixed; inset: 0; background: rgba(15,23,42,.55); z-index: 350; }
+    .hd-backdrop.show { display: block; }
+    body.hd-menu-open { overflow: hidden; }
+
+    /* --- Barra superior compacta --- */
+    .hd-topbar { padding: 0 10px; gap: 8px; }
+    .hd-topbar-search { display: none; }
+    .hd-topbar-brand small { display: none; }
+    .hd-topbar-user-info, .hd-topbar-user .fa-chevron-down { display: none; }
+    .hd-topbar-right { margin-left: auto; gap: 2px; }
+    .hd-topbar-icon { width: 34px; height: 34px; }
+    .hd-topbar-sep { display: none; }
+
+    /* --- Contenido --- */
+    .hd-main { padding: 12px; }
+    .page-wrapper { padding: 12px !important; }
+    .hd-page-header { align-items: flex-start; }
+    .hd-page-header > div:last-child:not(:first-child) { width: 100%; }
+    .hd-page-header .hd-btn { white-space: nowrap; }
+    .hd-stats-3, .hd-stats-4, .hd-stats-2 { grid-template-columns: repeat(2, 1fr); }
+    .hd-grid-8-4, .hd-grid-6-6, .hd-grid-3 { grid-template-columns: 1fr; }
+    .hd-card-header { flex-wrap: wrap; gap: 8px; }
+
+    /* Cuadrículas escritas «a mano» dentro de las páginas */
+    [style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
+
+    /* --- Pie de página --- */
+    .hd-footer { flex-direction: column; gap: 6px; text-align: center; padding: 12px; }
+    .hd-footer-links { flex-wrap: wrap; justify-content: center; gap: 10px; }
+
+    /* --- Ventanas emergentes (crear/editar) --- */
+    .hd-modal-overlay { padding: 8px !important; align-items: flex-end !important; }
+    .hd-modal { width: 100% !important; max-width: 100% !important; max-height: 92vh; margin: 0 !important; border-radius: 14px 14px 0 0 !important; }
+    .hd-modal-body { max-height: calc(92vh - 130px); overflow-y: auto; }
+    .hd-modal .row > [class*="col-"], .hd-modal-body .row > [class*="col-"] { width: 100%; flex: 0 0 100%; max-width: 100%; }
+
+    /* Campos más cómodos para el dedo (y sin zoom automático de iPhone) */
+    .hd-input, .hd-select, input.hd-input, select.hd-input, textarea.hd-input { font-size: 16px; min-height: 40px; }
+    .hd-btn { min-height: 36px; }
+    .hd-btn-sm { min-height: 32px; }
+}
+
+@media (max-width: 640px) {
+    body { font-size: 14px; }
+    .hd-stats-3, .hd-stats-4, .hd-stats-2 { grid-template-columns: 1fr 1fr; }
+    .hd-stat-num { font-size: 1.2rem; }
+
+    /* --- Tablas: cada fila pasa a ser una tarjeta (responsive.js pone data-label a cada celda) --- */
+    .hd-card > div[style*="overflow"] { overflow-x: visible !important; }
+    table.hd-table.hd-stack, table.hd-table.hd-stack thead, table.hd-table.hd-stack tbody,
+    table.hd-table.hd-stack tr, table.hd-table.hd-stack td { display: block; width: 100%; }
+    table.hd-table.hd-stack thead { position: absolute; left: -9999px; top: -9999px; }
+    table.hd-table.hd-stack tr { border: 1px solid var(--borde, #e2e8f0); border-radius: 10px; margin: 0 0 10px; padding: 4px 10px; background: #fff; }
+    table.hd-table.hd-stack tbody tr:hover { background: #fff; }
+    table.hd-table.hd-stack td { display: flex; justify-content: space-between; align-items: center; gap: 12px; text-align: right;
+        padding: 7px 0; border-bottom: 1px dashed #eef2f7; white-space: normal !important; word-break: break-word; }
+    table.hd-table.hd-stack td:last-child { border-bottom: 0; }
+    table.hd-table.hd-stack td::before { content: attr(data-label); font-weight: 600; font-size: .68rem; text-transform: uppercase;
+        letter-spacing: .3px; color: var(--muted, #64748b); text-align: left; flex: 0 0 38%; }
+    table.hd-table.hd-stack td:not([data-label])::before, table.hd-table.hd-stack td[data-label=""]::before { content: none; }
+    table.hd-table.hd-stack td[colspan] { display: block; text-align: center; }
+    table.hd-table.hd-stack td > div, table.hd-table.hd-stack td > span, table.hd-table.hd-stack td > form { max-width: 62%; text-align: right; }
+    table.hd-table.hd-stack td > div[style*="display:flex"], table.hd-table.hd-stack td > div[style*="display: flex"] { justify-content: flex-end; max-width: 100%; }
+
+    /* Tablas que no se apilan: al menos que se deslicen */
+    table.hd-table:not(.hd-stack) { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; white-space: nowrap; }
+
+    .hd-page-title { font-size: 1rem; }
+    .hd-card-body { padding: 10px; }
+    .filtro-btn { padding: 6px 12px !important; }
+}
+
+/* Tablas de Bootstrap dentro de contenedores .table-responsive y páginas sin .hd-table */
+.table-responsive { -webkit-overflow-scrolling: touch; }
+
+/* Formularios en dos columnas (ticket nuevo, ventanas de usuario/departamento, perfil): una sola columna en móvil */
+@media (max-width: 640px) {
+    .hd-form-row, .hd-modal-grid, .hd-row-2, .hd-perfil-grid { grid-template-columns: 1fr !important; }
+}
+
+/* Respaldo del estilo de los campos para las pantallas que lo tomaban del CSS antiguo (dashboard.css) */
+.hd-input { width: 100%; padding: 9px 12px; border: 1.5px solid var(--borde, #e2e8f0); border-radius: 7px; font-family: inherit; font-size: .83rem; background: #fff; outline: none; }
+.hd-input:focus { border-color: var(--naranja, #E87722); box-shadow: 0 0 0 3px rgba(232,119,34,.1); }
+.hd-input[readonly] { pointer-events: none; cursor: not-allowed; background-color: #f8f9fa !important; }

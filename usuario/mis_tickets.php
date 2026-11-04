@@ -32,17 +32,12 @@ $query = $conexion->query("
     ORDER BY t.fecha_creacion DESC
 ");
 ?>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mis Tickets — HelpDesk Unicon</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../assets/css/dashboard2.css">
-    <style>
+<?php /* m12-layout: header, menú y footer del sistema */
+require_once __DIR__ . '/../includes/header2.php';
+require_once __DIR__ . '/../includes/sidebar.php';
+?>
+<main class="hd-main">
+<style>
         body { font-family: 'Poppins', sans-serif; background: #f0f2f5; }
         .page-wrapper { max-width: 1100px; margin: 0 auto; padding: 24px 20px; }
         .filtro-btn {
@@ -57,9 +52,6 @@ $query = $conexion->query("
         }
         .filtro-btn.active { font-weight: 600; }
     </style>
-</head>
-<body>
-
 <div class="page-wrapper">
 
     <div class="hd-page-header" style="margin-bottom:16px;">
@@ -180,7 +172,10 @@ $query = $conexion->query("
     </div>
 
 </div>
+</main>
+<?php ob_start(); ?>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+<?php
+$hd_extra_scripts = ob_get_clean();
+require_once __DIR__ . '/../includes/footer2.php';
+if (empty($hd_scripts_done)) echo $hd_extra_scripts;

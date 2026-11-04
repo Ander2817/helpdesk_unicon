@@ -90,9 +90,11 @@ function tareas_ejecutar(mysqli $c, bool $forzar = false): void {
     try {
         if ($forzar) { $c->query("UPDATE sistema_estado SET actualizado = '2000-01-01 00:00:00' WHERE clave = 'tareas_revision'"); }
         if (!tareas_candado($c, 'tareas_revision', 15)) return;
-        $a = 0; $m = 0;
+        $a = 0; $m = 0; $as = 0;
         try { $a = tareas_autocerrar($c); } catch (Throwable $e) { error_log('[tareas] autocierre: ' . $e->getMessage()); }
         try { $m = tareas_mantenimientos($c); } catch (Throwable $e) { error_log('[tareas] mantenimientos: ' . $e->getMessage()); }
-        tareas_guardar($c, 'tareas_revision', "autocerrados=$a;avisos_mantenimiento=$m");
+        // Asignación automática: reparte los tickets que quedaron sin técnico (p. ej. cuando no había nadie disponible al crearlos)
+        try { if (is_file(__DIR__ . '/asignacion.php')) { require_once __DIR__ . '/asignacion.php'; $as = asig_pendientes($c); } } catch (Throwable $e) { error_log('[tareas] asignacion: ' . $e->getMessage()); }
+        tareas_guardar($c, 'tareas_revision', "autocerrados=$a;avisos_mantenimiento=$m;autoasignados=$as");
     } catch (Throwable $e) { error_log('[tareas] ' . $e->getMessage()); }
 }

@@ -85,7 +85,7 @@ $inicial = strtoupper(substr($usuario_activo, 0, 1));
                 <li class="nav-item dropdown">
                     <a class="hd-nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"><i class="fas fa-users-cog"></i> Usuarios</a>
                     <ul class="dropdown-menu hd-dropdown">
-                        <li><a class="dropdown-item" href="../admin/procesos/usuarios.php"><i class="fas fa-users"></i> Gestionar Usuarios</a></li>
+                        <li><a class="dropdown-item" href="../admin/usuarios.php"><i class="fas fa-users"></i> Gestionar Usuarios</a></li>
                         <li><a class="dropdown-item" href="roles.php"><i class="fas fa-shield-alt"></i> Roles y Permisos</a></li>
                         <li><a class="dropdown-item" href="departamentos.php"><i class="fas fa-building"></i> Departamentos</a></li>
                     </ul>

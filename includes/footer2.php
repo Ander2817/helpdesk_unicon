@@ -33,5 +33,6 @@ document.addEventListener('click', function(e) {
     }
 });
 </script>
+<?php /* m12-scripts */ if (!empty($hd_extra_scripts)) { echo $hd_extra_scripts; $hd_scripts_done = true; } ?>
 </body>
 </html>

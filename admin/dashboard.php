@@ -311,7 +311,7 @@ include_once '../includes/sidebar.php';
         <div class="hd-card">
             <div class="hd-card-header">
                 <h5 class="hd-card-title"><i class="fas fa-user-cog"></i> Técnicos</h5>
-                <a href="procesos/usuarios.php" class="hd-btn hd-btn-ghost hd-btn-sm">Gestionar</a>
+                <a href="usuarios.php" class="hd-btn hd-btn-ghost hd-btn-sm">Gestionar</a>
             </div>
             <div class="hd-card-body" style="padding:8px 12px;">
                 <?php if (empty($tecs)): ?>
